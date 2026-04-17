@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "OIC Activity Stream Enhanced Viewer",
+  "version": "1.2.0",
+  "description": "Enhanced tree viewer for Oracle Integration Cloud Activity Stream with single-scroll, fully collapsible view",
+  "permissions": ["activeTab", "storage", "scripting"],
+  "host_permissions": ["*://*.oraclecloud.com/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.oraclecloud.com/*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}

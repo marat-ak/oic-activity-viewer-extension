@@ -1,0 +1,928 @@
+/* ── Theme definitions ─────────────────────────────────────────────── */
+
+/* Light (default) */
+#oic-ev-overlay,
+#oic-ev-overlay[data-theme="light"] {
+  --ev-bg: #f5f6f8;
+  --ev-text: #1a1a1a;
+  --ev-text-muted: #64748b;
+  --ev-text-faint: #94a3b8;
+  --ev-border: #e2e8f0;
+  --ev-accent: #1a73e8;
+  --ev-accent-hover: #1557b0;
+
+  --ev-header-bg: #1e293b;
+  --ev-header-text: #ffffff;
+  --ev-header-btn-bg: rgba(255,255,255,0.15);
+  --ev-header-btn-border: rgba(255,255,255,0.2);
+  --ev-header-btn-hover: rgba(255,255,255,0.25);
+  --ev-close-bg: #dc2626;
+  --ev-close-hover: #b91c1c;
+
+  --ev-surface: #ffffff;
+  --ev-node-hover: #f1f5f9;
+  --ev-node-border: #e2e8f0;
+
+  --ev-error-bg: #fef2f2;
+  --ev-error-border: #fecaca;
+  --ev-error-text: #991b1b;
+  --ev-error-node-bg: #fef2f2;
+  --ev-error-node-hover: #fee2e2;
+
+  --ev-highlight-bg: #fbbf24;
+  --ev-highlight-text: #1a1a1a;
+
+  --ev-ok-bg: #dcfce7;
+  --ev-ok-text: #166534;
+  --ev-err-bg: #fee2e2;
+  --ev-err-text: #991b1b;
+
+  --ev-time-color: #94a3b8;
+  --ev-elapsed-color: #d97706;
+
+  --ev-iter-badge-bg: #e0e7ff;
+  --ev-iter-badge-text: #3730a3;
+  --ev-adapter-badge-bg: #f0fdf4;
+  --ev-adapter-badge-text: #166534;
+  --ev-adapter-badge-border: #bbf7d0;
+
+  --ev-payload-btn-color: #1a73e8;
+  --ev-payload-btn-border: #d1d5db;
+  --ev-payload-btn-hover-bg: #eff6ff;
+  --ev-payload-btn-hover-border: #93c5fd;
+  --ev-download-btn-color: #d97706;
+  --ev-download-btn-border: #fbbf24;
+  --ev-download-btn-hover-bg: #fffbeb;
+
+  --ev-payload-bg: #1e293b;
+  --ev-payload-text: #e2e8f0;
+  --ev-payload-actions-bg: rgba(255,255,255,0.1);
+  --ev-payload-actions-border: rgba(255,255,255,0.2);
+  --ev-payload-actions-text: #94a3b8;
+  --ev-payload-actions-hover-bg: rgba(255,255,255,0.2);
+  --ev-payload-actions-hover-text: #ffffff;
+
+  --ev-payload-headers-bg: #f8fafc;
+  --ev-payload-headers-border: #e2e8f0;
+  --ev-payload-headers-text: #64748b;
+
+  --ev-search-bg: #ffffff;
+  --ev-search-border: #d1d5db;
+  --ev-search-focus-border: #1a73e8;
+  --ev-search-focus-shadow: rgba(26,115,232,0.15);
+
+  --ev-spinner-track: #e2e8f0;
+  --ev-spinner-color: #1a73e8;
+  --ev-loading-text: #64748b;
+
+  --ev-toggle-color: #64748b;
+  --ev-toggle-hover-bg: #e2e8f0;
+  --ev-toggle-hover-color: #1e293b;
+
+  --ev-invokedby-color: #64748b;
+
+  --ev-theme-select-bg: rgba(255,255,255,0.15);
+  --ev-theme-select-text: #ffffff;
+  --ev-theme-select-border: rgba(255,255,255,0.2);
+
+  --ev-scrollbar-track: #e2e8f0;
+  --ev-scrollbar-thumb: #94a3b8;
+  --ev-scrollbar-thumb-hover: #64748b;
+}
+
+/* Dark */
+#oic-ev-overlay[data-theme="dark"] {
+  --ev-bg: #0f172a;
+  --ev-text: #e2e8f0;
+  --ev-text-muted: #94a3b8;
+  --ev-text-faint: #64748b;
+  --ev-border: #334155;
+  --ev-accent: #60a5fa;
+  --ev-accent-hover: #3b82f6;
+
+  --ev-header-bg: #020617;
+  --ev-header-text: #f1f5f9;
+  --ev-header-btn-bg: rgba(255,255,255,0.1);
+  --ev-header-btn-border: rgba(255,255,255,0.15);
+  --ev-header-btn-hover: rgba(255,255,255,0.2);
+  --ev-close-bg: #dc2626;
+  --ev-close-hover: #ef4444;
+
+  --ev-surface: #1e293b;
+  --ev-node-hover: #1e293b;
+  --ev-node-border: #334155;
+
+  --ev-error-bg: #450a0a;
+  --ev-error-border: #7f1d1d;
+  --ev-error-text: #fca5a5;
+  --ev-error-node-bg: #450a0a;
+  --ev-error-node-hover: #7f1d1d;
+
+  --ev-highlight-bg: #fbbf24;
+  --ev-highlight-text: #0f172a;
+
+  --ev-ok-bg: #064e3b;
+  --ev-ok-text: #6ee7b7;
+  --ev-err-bg: #7f1d1d;
+  --ev-err-text: #fca5a5;
+
+  --ev-time-color: #64748b;
+  --ev-elapsed-color: #fbbf24;
+
+  --ev-iter-badge-bg: #312e81;
+  --ev-iter-badge-text: #a5b4fc;
+  --ev-adapter-badge-bg: #064e3b;
+  --ev-adapter-badge-text: #6ee7b7;
+  --ev-adapter-badge-border: #065f46;
+
+  --ev-payload-btn-color: #60a5fa;
+  --ev-payload-btn-border: #475569;
+  --ev-payload-btn-hover-bg: #1e3a5f;
+  --ev-payload-btn-hover-border: #60a5fa;
+  --ev-download-btn-color: #fbbf24;
+  --ev-download-btn-border: #92400e;
+  --ev-download-btn-hover-bg: #451a03;
+
+  --ev-payload-bg: #020617;
+  --ev-payload-text: #cbd5e1;
+  --ev-payload-actions-bg: rgba(255,255,255,0.08);
+  --ev-payload-actions-border: rgba(255,255,255,0.12);
+  --ev-payload-actions-text: #64748b;
+  --ev-payload-actions-hover-bg: rgba(255,255,255,0.15);
+  --ev-payload-actions-hover-text: #e2e8f0;
+
+  --ev-payload-headers-bg: #1e293b;
+  --ev-payload-headers-border: #334155;
+  --ev-payload-headers-text: #94a3b8;
+
+  --ev-search-bg: #1e293b;
+  --ev-search-border: #475569;
+  --ev-search-focus-border: #60a5fa;
+  --ev-search-focus-shadow: rgba(96,165,250,0.2);
+
+  --ev-spinner-track: #334155;
+  --ev-spinner-color: #60a5fa;
+  --ev-loading-text: #94a3b8;
+
+  --ev-toggle-color: #94a3b8;
+  --ev-toggle-hover-bg: #334155;
+  --ev-toggle-hover-color: #e2e8f0;
+
+  --ev-invokedby-color: #94a3b8;
+
+  --ev-theme-select-bg: rgba(255,255,255,0.1);
+  --ev-theme-select-text: #e2e8f0;
+  --ev-theme-select-border: rgba(255,255,255,0.15);
+
+  --ev-scrollbar-track: #1e293b;
+  --ev-scrollbar-thumb: #475569;
+  --ev-scrollbar-thumb-hover: #64748b;
+}
+
+/* High Contrast */
+#oic-ev-overlay[data-theme="high-contrast"] {
+  --ev-bg: #000000;
+  --ev-text: #ffffff;
+  --ev-text-muted: #d4d4d4;
+  --ev-text-faint: #a3a3a3;
+  --ev-border: #525252;
+  --ev-accent: #38bdf8;
+  --ev-accent-hover: #7dd3fc;
+
+  --ev-header-bg: #171717;
+  --ev-header-text: #ffffff;
+  --ev-header-btn-bg: #262626;
+  --ev-header-btn-border: #525252;
+  --ev-header-btn-hover: #404040;
+  --ev-close-bg: #ef4444;
+  --ev-close-hover: #f87171;
+
+  --ev-surface: #171717;
+  --ev-node-hover: #262626;
+  --ev-node-border: #525252;
+
+  --ev-error-bg: #450a0a;
+  --ev-error-border: #dc2626;
+  --ev-error-text: #fca5a5;
+  --ev-error-node-bg: #3b0000;
+  --ev-error-node-hover: #5c0000;
+
+  --ev-highlight-bg: #facc15;
+  --ev-highlight-text: #000000;
+
+  --ev-ok-bg: #166534;
+  --ev-ok-text: #ffffff;
+  --ev-err-bg: #991b1b;
+  --ev-err-text: #ffffff;
+
+  --ev-time-color: #a3a3a3;
+  --ev-elapsed-color: #facc15;
+
+  --ev-iter-badge-bg: #1e1b4b;
+  --ev-iter-badge-text: #c4b5fd;
+  --ev-adapter-badge-bg: #052e16;
+  --ev-adapter-badge-text: #86efac;
+  --ev-adapter-badge-border: #166534;
+
+  --ev-payload-btn-color: #38bdf8;
+  --ev-payload-btn-border: #525252;
+  --ev-payload-btn-hover-bg: #0c4a6e;
+  --ev-payload-btn-hover-border: #38bdf8;
+  --ev-download-btn-color: #facc15;
+  --ev-download-btn-border: #a16207;
+  --ev-download-btn-hover-bg: #422006;
+
+  --ev-payload-bg: #0a0a0a;
+  --ev-payload-text: #e5e5e5;
+  --ev-payload-actions-bg: #262626;
+  --ev-payload-actions-border: #525252;
+  --ev-payload-actions-text: #a3a3a3;
+  --ev-payload-actions-hover-bg: #404040;
+  --ev-payload-actions-hover-text: #ffffff;
+
+  --ev-payload-headers-bg: #171717;
+  --ev-payload-headers-border: #525252;
+  --ev-payload-headers-text: #d4d4d4;
+
+  --ev-search-bg: #171717;
+  --ev-search-border: #525252;
+  --ev-search-focus-border: #38bdf8;
+  --ev-search-focus-shadow: rgba(56,189,248,0.3);
+
+  --ev-spinner-track: #525252;
+  --ev-spinner-color: #38bdf8;
+  --ev-loading-text: #d4d4d4;
+
+  --ev-toggle-color: #a3a3a3;
+  --ev-toggle-hover-bg: #404040;
+  --ev-toggle-hover-color: #ffffff;
+
+  --ev-invokedby-color: #a3a3a3;
+
+  --ev-theme-select-bg: #262626;
+  --ev-theme-select-text: #ffffff;
+  --ev-theme-select-border: #525252;
+
+  --ev-scrollbar-track: #171717;
+  --ev-scrollbar-thumb: #737373;
+  --ev-scrollbar-thumb-hover: #a3a3a3;
+}
+
+/* Solarized */
+#oic-ev-overlay[data-theme="solarized"] {
+  --ev-bg: #002b36;
+  --ev-text: #839496;
+  --ev-text-muted: #657b83;
+  --ev-text-faint: #586e75;
+  --ev-border: #073642;
+  --ev-accent: #268bd2;
+  --ev-accent-hover: #2aa198;
+
+  --ev-header-bg: #073642;
+  --ev-header-text: #fdf6e3;
+  --ev-header-btn-bg: rgba(253,246,227,0.1);
+  --ev-header-btn-border: rgba(253,246,227,0.15);
+  --ev-header-btn-hover: rgba(253,246,227,0.2);
+  --ev-close-bg: #dc322f;
+  --ev-close-hover: #cb4b16;
+
+  --ev-surface: #073642;
+  --ev-node-hover: #073642;
+  --ev-node-border: #586e75;
+
+  --ev-error-bg: #3b0000;
+  --ev-error-border: #dc322f;
+  --ev-error-text: #dc322f;
+  --ev-error-node-bg: rgba(220,50,47,0.1);
+  --ev-error-node-hover: rgba(220,50,47,0.2);
+
+  --ev-highlight-bg: #b58900;
+  --ev-highlight-text: #fdf6e3;
+
+  --ev-ok-bg: #073642;
+  --ev-ok-text: #859900;
+  --ev-err-bg: #073642;
+  --ev-err-text: #dc322f;
+
+  --ev-time-color: #586e75;
+  --ev-elapsed-color: #b58900;
+
+  --ev-iter-badge-bg: rgba(108,113,196,0.2);
+  --ev-iter-badge-text: #6c71c4;
+  --ev-adapter-badge-bg: rgba(133,153,0,0.15);
+  --ev-adapter-badge-text: #859900;
+  --ev-adapter-badge-border: rgba(133,153,0,0.3);
+
+  --ev-payload-btn-color: #268bd2;
+  --ev-payload-btn-border: #586e75;
+  --ev-payload-btn-hover-bg: rgba(38,139,210,0.15);
+  --ev-payload-btn-hover-border: #268bd2;
+  --ev-download-btn-color: #cb4b16;
+  --ev-download-btn-border: #586e75;
+  --ev-download-btn-hover-bg: rgba(203,75,22,0.15);
+
+  --ev-payload-bg: #002b36;
+  --ev-payload-text: #93a1a1;
+  --ev-payload-actions-bg: rgba(253,246,227,0.08);
+  --ev-payload-actions-border: rgba(253,246,227,0.12);
+  --ev-payload-actions-text: #657b83;
+  --ev-payload-actions-hover-bg: rgba(253,246,227,0.15);
+  --ev-payload-actions-hover-text: #fdf6e3;
+
+  --ev-payload-headers-bg: #073642;
+  --ev-payload-headers-border: #586e75;
+  --ev-payload-headers-text: #657b83;
+
+  --ev-search-bg: #073642;
+  --ev-search-border: #586e75;
+  --ev-search-focus-border: #268bd2;
+  --ev-search-focus-shadow: rgba(38,139,210,0.25);
+
+  --ev-spinner-track: #073642;
+  --ev-spinner-color: #268bd2;
+  --ev-loading-text: #657b83;
+
+  --ev-toggle-color: #657b83;
+  --ev-toggle-hover-bg: #073642;
+  --ev-toggle-hover-color: #93a1a1;
+
+  --ev-invokedby-color: #657b83;
+
+  --ev-theme-select-bg: rgba(253,246,227,0.1);
+  --ev-theme-select-text: #fdf6e3;
+  --ev-theme-select-border: rgba(253,246,227,0.15);
+
+  --ev-scrollbar-track: #073642;
+  --ev-scrollbar-thumb: #586e75;
+  --ev-scrollbar-thumb-hover: #839496;
+}
+
+
+/* ── Component styles using CSS variables ────────────────────────── */
+
+#oic-enhanced-viewer-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999999;
+  background: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  display: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+#oic-enhanced-viewer-btn:hover {
+  background: #1557b0;
+}
+
+#oic-ev-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 1000000;
+  background: var(--ev-bg);
+  overflow-y: auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  font-size: 13px;
+  color: var(--ev-text);
+}
+
+/* Sticky top bar container */
+.oic-ev-top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Header */
+.oic-ev-header {
+  background: var(--ev-header-bg);
+  color: var(--ev-header-text);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.oic-ev-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+.oic-ev-header-info {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-left: 16px;
+}
+.oic-ev-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.oic-ev-header-actions button {
+  background: var(--ev-header-btn-bg);
+  color: var(--ev-header-text);
+  border: 1px solid var(--ev-header-btn-border);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.oic-ev-header-actions button:hover {
+  background: var(--ev-header-btn-hover);
+}
+.oic-ev-header-actions .oic-ev-close-btn {
+  background: var(--ev-close-bg);
+  border-color: var(--ev-close-bg);
+  font-weight: 600;
+}
+.oic-ev-header-actions .oic-ev-close-btn:hover {
+  background: var(--ev-close-hover);
+}
+
+/* Separator between button groups in header */
+.oic-ev-header-sep {
+  display: inline-block;
+  width: 1px;
+  height: 20px;
+  background: var(--ev-header-btn-border);
+  margin: 0 4px;
+  vertical-align: middle;
+}
+
+/* Theme selector */
+.oic-ev-theme-select {
+  background: var(--ev-theme-select-bg);
+  color: var(--ev-theme-select-text);
+  border: 1px solid var(--ev-theme-select-border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  outline: none;
+}
+.oic-ev-theme-select option {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+/* Error banner */
+.oic-ev-error-banner {
+  background: var(--ev-error-bg);
+  border-bottom: 1px solid var(--ev-error-border);
+  padding: 10px 24px;
+  color: var(--ev-error-text);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.oic-ev-error-banner .oic-ev-error-icon {
+  font-size: 16px;
+}
+
+/* Status bar */
+.oic-ev-status-bar {
+  background: var(--ev-surface);
+  border-bottom: 1px solid var(--ev-border);
+  padding: 8px 24px;
+  font-size: 12px;
+  color: var(--ev-text-muted);
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+.oic-ev-status-bar span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.oic-ev-status-bar strong {
+  color: var(--ev-text);
+}
+
+/* Download all payloads button */
+.oic-ev-download-all-btn {
+  background: var(--ev-accent);
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.oic-ev-download-all-btn:hover {
+  background: var(--ev-accent-hover);
+}
+.oic-ev-download-all-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+.oic-ev-download-all-btn.oic-ev-download-done {
+  background: var(--ev-ok-bg);
+  color: var(--ev-ok-text);
+  cursor: default;
+}
+.oic-ev-download-progress {
+  font-size: 11px;
+  color: var(--ev-text-muted);
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+}
+
+/* Search bar */
+.oic-ev-search-bar {
+  background: var(--ev-surface);
+  border-bottom: 1px solid var(--ev-border);
+  padding: 8px 24px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.oic-ev-search-bar input {
+  flex: 1;
+  padding: 6px 12px;
+  border: 1px solid var(--ev-search-border);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  background: var(--ev-search-bg);
+  color: var(--ev-text);
+}
+.oic-ev-search-bar input:focus {
+  border-color: var(--ev-search-focus-border);
+  box-shadow: 0 0 0 2px var(--ev-search-focus-shadow);
+}
+.oic-ev-search-bar input::placeholder {
+  color: var(--ev-text-faint);
+}
+.oic-ev-search-nav {
+  background: var(--ev-search-bg);
+  color: var(--ev-text-muted);
+  border: 1px solid var(--ev-search-border);
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 10px;
+  flex-shrink: 0;
+  padding: 0;
+  font-family: inherit;
+}
+.oic-ev-search-nav:hover {
+  background: var(--ev-node-hover);
+  color: var(--ev-text);
+  border-color: var(--ev-search-focus-border);
+}
+.oic-ev-search-bar .oic-ev-search-count {
+  font-size: 12px;
+  color: var(--ev-text-muted);
+  min-width: 80px;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+}
+
+/* Tree */
+.oic-ev-tree {
+  padding: 8px 16px 40px 16px;
+}
+
+.oic-ev-node {
+  border-left: 2px solid var(--ev-node-border);
+  margin-left: 12px;
+  position: relative;
+}
+.oic-ev-tree > .oic-ev-node {
+  border-left: none;
+  margin-left: 0;
+}
+
+/* Node header */
+.oic-ev-node-header {
+  display: flex;
+  align-items: flex-start;
+  padding: 3px 8px;
+  margin: 1px 0;
+  border-radius: 4px;
+  cursor: default;
+  gap: 6px;
+  line-height: 1.4;
+}
+.oic-ev-node-header:hover {
+  background: var(--ev-node-hover);
+}
+.oic-ev-node-header.oic-ev-error {
+  background: var(--ev-error-node-bg);
+}
+.oic-ev-node-header.oic-ev-error:hover {
+  background: var(--ev-error-node-hover);
+}
+.oic-ev-node-header.oic-ev-highlighted {
+  background: var(--ev-highlight-bg) !important;
+  color: var(--ev-highlight-text);
+}
+.oic-ev-node-header.oic-ev-highlighted .oic-ev-time,
+.oic-ev-node-header.oic-ev-highlighted .oic-ev-elapsed,
+.oic-ev-node-header.oic-ev-highlighted .oic-ev-message {
+  color: var(--ev-highlight-text);
+}
+
+/* Current navigated match — stronger highlight */
+.oic-ev-node-header.oic-ev-current-match {
+  background: var(--ev-accent) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 2px var(--ev-accent), 0 2px 8px rgba(0,0,0,0.2);
+}
+.oic-ev-node-header.oic-ev-current-match .oic-ev-time,
+.oic-ev-node-header.oic-ev-current-match .oic-ev-elapsed,
+.oic-ev-node-header.oic-ev-current-match .oic-ev-message,
+.oic-ev-node-header.oic-ev-current-match .oic-ev-toggle {
+  color: #ffffff !important;
+}
+.oic-ev-node-header.oic-ev-current-match .oic-ev-status-icon {
+  opacity: 0.8;
+}
+
+/* Toggle arrow */
+.oic-ev-toggle {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  color: var(--ev-toggle-color);
+  font-size: 10px;
+  border-radius: 3px;
+  margin-top: 1px;
+}
+.oic-ev-toggle:hover {
+  background: var(--ev-toggle-hover-bg);
+  color: var(--ev-toggle-hover-color);
+}
+.oic-ev-toggle.oic-ev-leaf {
+  visibility: hidden;
+}
+
+/* Status icons */
+.oic-ev-status-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  margin-top: 2px;
+}
+.oic-ev-status-icon.oic-ev-ok {
+  background: var(--ev-ok-bg);
+  color: var(--ev-ok-text);
+}
+.oic-ev-status-icon.oic-ev-err {
+  background: var(--ev-err-bg);
+  color: var(--ev-err-text);
+}
+
+/* Time & elapsed */
+.oic-ev-time {
+  color: var(--ev-time-color);
+  font-size: 11px;
+  flex-shrink: 0;
+  min-width: 100px;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  margin-top: 1px;
+}
+.oic-ev-elapsed {
+  color: var(--ev-elapsed-color);
+  font-size: 11px;
+  flex-shrink: 0;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+}
+
+/* Message & badges */
+.oic-ev-message {
+  flex: 1;
+  word-break: break-word;
+}
+.oic-ev-message .oic-ev-iter-badge {
+  background: var(--ev-iter-badge-bg);
+  color: var(--ev-iter-badge-text);
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  margin-left: 6px;
+  font-weight: 500;
+}
+.oic-ev-message .oic-ev-adapter-badge {
+  background: var(--ev-adapter-badge-bg);
+  color: var(--ev-adapter-badge-text);
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 4px;
+  border: 1px solid var(--ev-adapter-badge-border);
+  text-transform: uppercase;
+}
+
+/* Payload button */
+.oic-ev-payload-btn {
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid var(--ev-payload-btn-border);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  color: var(--ev-payload-btn-color);
+  font-family: inherit;
+}
+.oic-ev-payload-btn:hover {
+  background: var(--ev-payload-btn-hover-bg);
+  border-color: var(--ev-payload-btn-hover-border);
+}
+.oic-ev-payload-btn.oic-ev-download {
+  color: var(--ev-download-btn-color);
+  border-color: var(--ev-download-btn-border);
+}
+.oic-ev-payload-btn.oic-ev-download:hover {
+  background: var(--ev-download-btn-hover-bg);
+}
+
+/* Error details / summary buttons */
+.oic-ev-payload-btn.oic-ev-error-detail-btn {
+  color: var(--ev-err-text);
+  border-color: var(--ev-err-bg);
+  background: var(--ev-err-bg);
+}
+.oic-ev-payload-btn.oic-ev-error-detail-btn:hover {
+  opacity: 0.85;
+}
+
+/* Children container */
+.oic-ev-children {
+  overflow: hidden;
+}
+.oic-ev-children.oic-ev-collapsed {
+  display: none;
+}
+
+/* Payload content */
+.oic-ev-payload-content {
+  margin: 2px 0 4px 42px;
+  background: var(--ev-payload-bg);
+  color: var(--ev-payload-text);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 400px;
+  overflow-y: auto;
+  position: relative;
+  border: 1px solid var(--ev-border);
+}
+.oic-ev-payload-content.oic-ev-expanded-payload {
+  max-height: none;
+}
+
+/* Payload actions (Copy / Full height) */
+.oic-ev-payload-actions {
+  position: sticky;
+  top: 0;
+  float: right;
+  display: flex;
+  gap: 4px;
+}
+.oic-ev-payload-actions button {
+  background: var(--ev-payload-actions-bg);
+  border: 1px solid var(--ev-payload-actions-border);
+  color: var(--ev-payload-actions-text);
+  border-radius: 3px;
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.oic-ev-payload-actions button:hover {
+  background: var(--ev-payload-actions-hover-bg);
+  color: var(--ev-payload-actions-hover-text);
+}
+
+/* Payload headers */
+.oic-ev-payload-headers {
+  margin: 2px 0 2px 42px;
+  background: var(--ev-payload-headers-bg);
+  border: 1px solid var(--ev-payload-headers-border);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  color: var(--ev-payload-headers-text);
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+/* Loading */
+.oic-ev-loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--ev-loading-text);
+  font-size: 16px;
+}
+.oic-ev-loading .oic-ev-spinner {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--ev-spinner-track);
+  border-top-color: var(--ev-spinner-color);
+  border-radius: 50%;
+  animation: oic-ev-spin 0.8s linear infinite;
+  margin-bottom: 16px;
+}
+@keyframes oic-ev-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Payload line numbers for better line finding */
+.oic-ev-payload-line {
+  display: block;
+  padding: 0 4px;
+  border-radius: 2px;
+}
+.oic-ev-payload-line:hover {
+  background: rgba(255,255,255,0.08);
+}
+.oic-ev-payload-line .oic-ev-line-num {
+  display: inline-block;
+  min-width: 3em;
+  text-align: right;
+  padding-right: 12px;
+  color: var(--ev-text-faint);
+  user-select: none;
+  opacity: 0.5;
+  border-right: 1px solid var(--ev-border);
+  margin-right: 12px;
+}
+
+/* Payload search highlight inside payload content */
+.oic-ev-payload-content mark {
+  background: var(--ev-highlight-bg);
+  color: var(--ev-highlight-text);
+  padding: 1px 2px;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+/* ── Scrollbars ──────────────────────────────────────────────────── */
+
+/* Webkit (Chrome, Edge) */
+#oic-ev-overlay::-webkit-scrollbar,
+#oic-ev-overlay *::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+#oic-ev-overlay::-webkit-scrollbar-track,
+#oic-ev-overlay *::-webkit-scrollbar-track {
+  background: var(--ev-scrollbar-track);
+}
+#oic-ev-overlay::-webkit-scrollbar-thumb,
+#oic-ev-overlay *::-webkit-scrollbar-thumb {
+  background: var(--ev-scrollbar-thumb);
+  border-radius: 6px;
+  border: 2px solid var(--ev-scrollbar-track);
+}
+#oic-ev-overlay::-webkit-scrollbar-thumb:hover,
+#oic-ev-overlay *::-webkit-scrollbar-thumb:hover {
+  background: var(--ev-scrollbar-thumb-hover);
+}
+#oic-ev-overlay::-webkit-scrollbar-corner,
+#oic-ev-overlay *::-webkit-scrollbar-corner {
+  background: var(--ev-scrollbar-track);
+}
+
+/* Firefox */
+#oic-ev-overlay,
+#oic-ev-overlay .oic-ev-payload-content,
+#oic-ev-overlay .oic-ev-payload-headers {
+  scrollbar-width: auto;
+  scrollbar-color: var(--ev-scrollbar-thumb) var(--ev-scrollbar-track);
+}
