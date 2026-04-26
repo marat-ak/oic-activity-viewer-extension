@@ -379,6 +379,127 @@
     childContainer.appendChild(frag);
   }
 
+  function pickPayloadExtension(mediaType, text) {
+    if (mediaType) {
+      if (/json/i.test(mediaType)) return 'json';
+      if (/xml/i.test(mediaType)) return 'xml';
+      if (/html/i.test(mediaType)) return 'html';
+    }
+    const t = (text || '').replace(/^\s+/, '');
+    if (t.charAt(0) === '{' || t.charAt(0) === '[') return 'json';
+    if (t.charAt(0) === '<') return 'xml';
+    return 'txt';
+  }
+
+  function triggerDownload(text, baseName, mediaType) {
+    const ext = pickPayloadExtension(mediaType, text);
+    const safe = (baseName || 'payload').replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 80);
+    const fname = safe.endsWith('.' + ext) ? safe : safe + '.' + ext;
+    const blob = new Blob([text || ''], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fname; a.style.display = 'none';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 500);
+  }
+
+  function openFullscreenPayload(text, mediaType, title) {
+    const existing = document.getElementById('oic-ev-fullscreen');
+    if (existing) existing.remove();
+
+    const ovl = document.getElementById('oic-ev-overlay');
+    const theme = ovl ? (ovl.getAttribute('data-theme') || 'light') : 'light';
+
+    const fs = document.createElement('div');
+    fs.id = 'oic-ev-fullscreen';
+    fs.setAttribute('data-theme', theme);
+
+    const header = document.createElement('div');
+    header.className = 'oic-ev-fs-header';
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'oic-ev-fs-title';
+    titleEl.textContent = title || 'Payload';
+    header.appendChild(titleEl);
+
+    const copyAct = document.createElement('button');
+    copyAct.className = 'oic-ev-fs-action';
+    copyAct.textContent = '📋 Copy';
+    copyAct.addEventListener('click', () => {
+      navigator.clipboard.writeText(text || '').then(() => {
+        const orig = copyAct.textContent;
+        copyAct.textContent = '✓ Copied';
+        setTimeout(() => copyAct.textContent = orig, 1500);
+      });
+    });
+    header.appendChild(copyAct);
+
+    const dlAct = document.createElement('button');
+    dlAct.className = 'oic-ev-fs-action';
+    dlAct.textContent = '⬇ Download';
+    dlAct.addEventListener('click', () => triggerDownload(text, title || 'payload', mediaType));
+    header.appendChild(dlAct);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'oic-ev-fs-close';
+    closeBtn.textContent = '✕ Close';
+    const close = () => { fs.remove(); document.removeEventListener('keydown', escHandler); };
+    closeBtn.addEventListener('click', close);
+    header.appendChild(closeBtn);
+
+    const body = document.createElement('pre');
+    body.className = 'oic-ev-fs-body';
+    body.innerHTML = formatPayloadWithLineNumbers(text || '', mediaType);
+
+    fs.appendChild(header);
+    fs.appendChild(body);
+    document.body.appendChild(fs);
+
+    const escHandler = (e) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', escHandler);
+  }
+
+  // Build the iconic action toolbar (Copy, Download, Full-height toggle, Fullscreen).
+  // `getText` is a function so we can build the toolbar before payload is fetched.
+  function buildPayloadActions(getText, mediaType, container, baseName) {
+    const actions = document.createElement('div');
+    actions.className = 'oic-ev-payload-actions';
+
+    const mkBtn = (icon, title, onClick) => {
+      const b = document.createElement('button');
+      b.className = 'oic-ev-icon-btn';
+      b.textContent = icon;
+      b.title = title;
+      b.addEventListener('click', (e) => { e.stopPropagation(); onClick(b); });
+      return b;
+    };
+
+    const copyBtn = mkBtn('📋', 'Copy to clipboard', (b) => {
+      navigator.clipboard.writeText(getText() || '').then(() => {
+        b.textContent = '✓';
+        setTimeout(() => b.textContent = '📋', 1500);
+      });
+    });
+    actions.appendChild(copyBtn);
+
+    actions.appendChild(mkBtn('⬇', 'Download', () => triggerDownload(getText(), baseName, mediaType)));
+
+    const expandBtn = mkBtn('⇕', 'Toggle full height', (b) => {
+      container.classList.toggle('oic-ev-expanded-payload');
+      b.title = container.classList.contains('oic-ev-expanded-payload') ? 'Limit height' : 'Toggle full height';
+    });
+    actions.appendChild(expandBtn);
+
+    actions.appendChild(mkBtn('⛶', 'Open in fullscreen', () => openFullscreenPayload(getText(), mediaType, baseName)));
+
+    return actions;
+  }
+
+  function payloadBaseName(suffix) {
+    const inst = (currentInstanceId || 'activity').substring(0, 30);
+    return suffix ? inst + '-' + suffix : inst;
+  }
+
   function toggleTextBlock(text, cssClass, nodeEl, mediaType) {
     const existing = nodeEl.querySelector(':scope > .' + cssClass);
     if (existing) { existing.remove(); return; }
@@ -386,25 +507,8 @@
     const container = document.createElement('div');
     container.className = 'oic-ev-payload-content ' + cssClass;
 
-    const actions = document.createElement('div');
-    actions.className = 'oic-ev-payload-actions';
-    const copyBtn = document.createElement('button');
-    copyBtn.textContent = 'Copy';
-    copyBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(text).then(() => {
-        copyBtn.textContent = 'Copied!';
-        setTimeout(() => copyBtn.textContent = 'Copy', 1500);
-      });
-    });
-    actions.appendChild(copyBtn);
-    const expandBtn = document.createElement('button');
-    expandBtn.textContent = 'Full height';
-    expandBtn.addEventListener('click', () => {
-      container.classList.toggle('oic-ev-expanded-payload');
-      expandBtn.textContent = container.classList.contains('oic-ev-expanded-payload') ? 'Limit height' : 'Full height';
-    });
-    actions.appendChild(expandBtn);
-    container.appendChild(actions);
+    const baseName = payloadBaseName(cssClass.replace(/^oic-ev-/, ''));
+    container.appendChild(buildPayloadActions(() => text, mediaType, container, baseName));
 
     const codeEl = document.createElement('code');
     codeEl.innerHTML = formatPayloadWithLineNumbers(text, mediaType);
@@ -456,28 +560,8 @@
     const container = document.createElement('div');
     container.className = 'oic-ev-payload-content';
 
-    const actions = document.createElement('div');
-    actions.className = 'oic-ev-payload-actions';
-
-    const copyBtn = document.createElement('button');
-    copyBtn.textContent = 'Copy';
-    copyBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(payloadText).then(() => {
-        copyBtn.textContent = 'Copied!';
-        setTimeout(() => copyBtn.textContent = 'Copy', 1500);
-      });
-    });
-    actions.appendChild(copyBtn);
-
-    const expandBtn = document.createElement('button');
-    expandBtn.textContent = 'Full height';
-    expandBtn.addEventListener('click', () => {
-      container.classList.toggle('oic-ev-expanded-payload');
-      expandBtn.textContent = container.classList.contains('oic-ev-expanded-payload') ? 'Limit height' : 'Full height';
-    });
-    actions.appendChild(expandBtn);
-
-    container.appendChild(actions);
+    const baseName = payloadBaseName(item.identifier || item.milestone || 'payload');
+    container.appendChild(buildPayloadActions(() => payloadText, item.payloadMediaType, container, baseName));
 
     const codeEl = document.createElement('code');
     codeEl.innerHTML = formatPayloadWithLineNumbers(payloadText, item.payloadMediaType);

@@ -802,27 +802,105 @@
   max-height: none;
 }
 
-/* Payload actions (Copy / Full height) */
+/* Payload actions (Copy / Download / Full height / Fullscreen — iconic) */
 .oic-ev-payload-actions {
   position: sticky;
   top: 0;
   float: right;
   display: flex;
   gap: 4px;
+  z-index: 1;
 }
-.oic-ev-payload-actions button {
+.oic-ev-payload-actions .oic-ev-icon-btn {
   background: var(--ev-payload-actions-bg);
   border: 1px solid var(--ev-payload-actions-border);
   color: var(--ev-payload-actions-text);
-  border-radius: 3px;
-  padding: 2px 8px;
-  font-size: 11px;
+  border-radius: 4px;
+  width: 26px;
+  height: 22px;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.oic-ev-payload-actions .oic-ev-icon-btn:hover {
+  background: var(--ev-payload-actions-hover-bg);
+  color: var(--ev-payload-actions-hover-text);
+  border-color: var(--ev-payload-actions-hover-text, var(--ev-payload-actions-border));
+}
+
+/* Fullscreen payload viewer overlay */
+#oic-ev-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  background: var(--ev-payload-bg, #0f172a);
+  color: var(--ev-payload-text, #e2e8f0);
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+#oic-ev-fullscreen .oic-ev-fs-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: var(--ev-header-bg, #1e293b);
+  border-bottom: 1px solid var(--ev-payload-actions-border, #334155);
+  flex-shrink: 0;
+}
+#oic-ev-fullscreen .oic-ev-fs-title {
+  flex: 1;
+  font-size: 13px;
+  font-family: 'SF Mono', 'Consolas', 'Menlo', monospace;
+  color: var(--ev-header-text, #e2e8f0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#oic-ev-fullscreen .oic-ev-fs-action {
+  background: var(--ev-header-btn-bg, rgba(255,255,255,0.12));
+  color: var(--ev-header-text, #e2e8f0);
+  border: 1px solid var(--ev-header-btn-border, rgba(255,255,255,0.2));
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-right: 4px;
+  font-family: inherit;
+}
+#oic-ev-fullscreen .oic-ev-fs-action:hover {
+  background: var(--ev-header-btn-hover, rgba(255,255,255,0.22));
+}
+#oic-ev-fullscreen .oic-ev-fs-close {
+  background: var(--ev-close-bg, #dc2626);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
   cursor: pointer;
   font-family: inherit;
 }
-.oic-ev-payload-actions button:hover {
-  background: var(--ev-payload-actions-hover-bg);
-  color: var(--ev-payload-actions-hover-text);
+#oic-ev-fullscreen .oic-ev-fs-close:hover {
+  background: var(--ev-close-hover, #b91c1c);
+}
+#oic-ev-fullscreen .oic-ev-fs-body {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+  margin: 0;
+  font-family: 'SF Mono', 'Consolas', 'Menlo', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--ev-payload-text, #e2e8f0);
+  background: var(--ev-payload-bg, #0f172a);
 }
 
 /* Payload headers */
