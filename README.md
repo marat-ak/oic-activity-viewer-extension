@@ -10,7 +10,7 @@ When you open an OIC instance's Activity Stream, OIC's native viewer paginates a
 - **Fully collapsible** — collapse/expand any node, including loops with 1000+ iterations.
 - **Lazy rendering** — handles 16K+ nodes without freezing the browser.
 - **Themes** — light, dark, high-contrast, solarized.
-- **Auto-detect** — optional floating button appears automatically when an Activity Stream page is detected.
+- **Auto-detect** — optional floating launcher button on OIC pages. The Instance ID is auto-captured **only when clicked from Oracle's native Activity Stream view** (the panel that exposes the `Instance ID: …` label / Copy-instance-id button). On other pages, you'll be prompted to paste the ID manually.
 - **Import JSON** — load a saved `activityStreamDetails` response offline (e.g. for support cases).
 
 ## Installation
@@ -30,10 +30,12 @@ _(Pending — will be linked here once published.)_
 
 ### Open from a monitoring page
 
-1. Navigate to your OIC instance's monitoring page (any `*.oraclecloud.com` URL).
+1. Open the **native Oracle Activity Stream** for the instance you want to inspect (the page that shows the `Instance ID: …` label and Copy-instance-id button).
 2. Either:
-   - Click the floating button (if **Auto-detect** is enabled), or
+   - Click the floating button (if **Auto-detect** is enabled) — Instance ID is captured automatically from the page, or
    - Click the toolbar icon, paste an **Instance ID**, click **Open**.
+
+> **Note:** auto-capture only works when the floating button is clicked from Oracle's native Activity Stream view. On other OIC pages the button still appears (when **Auto-detect** is on), but you'll be asked to paste the Instance ID manually.
 
 ### Import a saved activity stream JSON
 
@@ -45,7 +47,7 @@ _(Pending — will be linked here once published.)_
 
 ### Settings
 
-- **Auto-detect button** — show/hide the floating launcher on monitoring pages.
+- **Auto-detect button** — show/hide the floating launcher on OIC pages. (Auto-capture of Instance ID requires Oracle's native Activity Stream view to be open; otherwise the button prompts for manual input.)
 - **Color theme** — light / dark / high-contrast / solarized.
 
 ## Permissions
