@@ -1,0 +1,81 @@
+name: Bug Report
+description: Report a problem with the OIC Activity Stream Enhanced Viewer
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill in as much detail as possible.
+
+  - type: input
+    id: extension_version
+    attributes:
+      label: Extension version
+      description: Find it on `chrome://extensions` or in the popup footer.
+      placeholder: e.g. 1.2.0
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser & version
+      placeholder: e.g. Chrome 132, Edge 131, Brave 1.72
+    validations:
+      required: true
+
+  - type: input
+    id: oic_region
+    attributes:
+      label: OIC region (if applicable)
+      placeholder: e.g. eu-frankfurt-1, us-ashburn-1
+    validations:
+      required: false
+
+  - type: textarea
+    id: what_happened
+    attributes:
+      label: What happened?
+      description: Describe the bug clearly.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+        3. See error ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: console
+    attributes:
+      label: Console errors
+      description: Open DevTools (F12) → Console. Paste any red errors.
+      render: shell
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots (optional)
+      description: Drag-drop images here.
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confirmation
+      options:
+        - label: I have removed any tenant-specific data (instance IDs, payloads) before submitting.
+          required: true

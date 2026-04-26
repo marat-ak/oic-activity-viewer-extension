@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question / discussion
+    url: https://github.com/marat-ak/oic-activity-viewer-extension/discussions
+    about: For general questions, ideas, and discussions (enable Discussions on the repo first).

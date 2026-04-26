@@ -149,6 +149,19 @@
   }
   .status.error { color: #dc2626; background: #fef2f2; }
   .status.success { color: #166534; background: #dcfce7; }
+  .footer {
+    padding: 8px 16px 10px;
+    font-size: 11px;
+    color: #64748b;
+    text-align: center;
+    border-top: 1px solid #e2e8f0;
+  }
+  .footer a {
+    color: #1a73e8;
+    text-decoration: none;
+    margin: 0 4px;
+  }
+  .footer a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -195,6 +208,12 @@
   </div>
 
   <div class="status" id="status"></div>
+
+  <div class="footer">
+    <a href="https://github.com/marat-ak/oic-activity-viewer-extension/issues/new?template=bug_report.yml" target="_blank" rel="noopener">Report bug</a>
+    ·
+    <a href="https://github.com/marat-ak/oic-activity-viewer-extension/issues/new?template=feature_request.yml" target="_blank" rel="noopener">Request feature</a>
+  </div>
 
   <script src="popup.js"></script>
 </body>
