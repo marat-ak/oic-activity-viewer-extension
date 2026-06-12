@@ -419,6 +419,51 @@
   opacity: 0.8;
   margin-left: 16px;
 }
+.oic-ev-instance-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 16px;
+  font-size: 12px;
+}
+.oic-ev-instance-group label {
+  opacity: 0.8;
+}
+.oic-ev-instance-input {
+  padding: 4px 8px;
+  border: 1px solid var(--ev-header-btn-bg);
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  background: var(--ev-header-btn-bg);
+  color: var(--ev-header-text);
+  width: 220px;
+  outline: none;
+}
+.oic-ev-instance-input:focus {
+  border-color: var(--ev-accent);
+  box-shadow: 0 0 0 2px rgba(26,115,232,0.3);
+}
+.oic-ev-instance-input::placeholder {
+  color: var(--ev-text-faint);
+}
+.oic-ev-instance-load-btn {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--ev-accent);
+  color: #fff;
+  cursor: pointer;
+}
+.oic-ev-instance-load-btn:hover {
+  filter: brightness(1.1);
+}
+.oic-ev-instance-load-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 .oic-ev-header-actions {
   display: flex;
   gap: 8px;
@@ -592,6 +637,46 @@
   color: var(--ev-text-muted);
   min-width: 80px;
   font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+}
+
+/* Filter toggle */
+.oic-ev-filter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--ev-text-muted);
+  cursor: pointer;
+  margin-left: 8px;
+  user-select: none;
+}
+.oic-ev-filter-toggle input {
+  cursor: pointer;
+}
+.oic-ev-filter-toggle:hover {
+  color: var(--ev-text);
+}
+
+/* Filtered out nodes */
+.oic-ev-node.oic-ev-filtered-out {
+  display: none !important;
+}
+
+/* Search warning */
+.oic-ev-search-warning {
+  background: var(--ev-warning-bg, #fef3cd);
+  color: var(--ev-warning-text, #856404);
+  border: 1px solid var(--ev-warning-border, #ffc107);
+  border-radius: 4px;
+  padding: 6px 12px;
+  margin: 0 24px 8px 24px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+[data-theme="dark"] .oic-ev-search-warning {
+  background: #3d3200;
+  color: #ffc107;
+  border-color: #665200;
 }
 
 /* Tree */
@@ -961,8 +1046,9 @@
   margin-right: 12px;
 }
 
-/* Payload search highlight inside payload content */
-.oic-ev-payload-content mark {
+/* Search highlight inside payload and message content */
+.oic-ev-payload-content mark,
+.oic-ev-message mark {
   background: var(--ev-highlight-bg);
   color: var(--ev-highlight-text);
   padding: 1px 2px;

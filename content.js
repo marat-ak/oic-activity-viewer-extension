@@ -23,7 +23,7 @@
 
   function loadTheme(callback) {
     chrome.storage.local.get(['viewerTheme'], (data) => {
-      currentTheme = data.viewerTheme || 'light';
+      currentTheme = data.viewerTheme || 'dark';
       if (callback) callback(currentTheme);
     });
   }
@@ -213,12 +213,21 @@
     return div.innerHTML;
   }
 
-  function formatPayloadWithLineNumbers(text, mediaType) {
+  function highlightMatches(escapedHtml, query) {
+    if (!query) return escapedHtml;
+    const q = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${q})`, 'gi');
+    return escapedHtml.replace(regex, '<mark>$1</mark>');
+  }
+
+  function formatPayloadWithLineNumbers(text, mediaType, query) {
     const formatted = formatPayload(text, mediaType);
     const lines = formatted.split('\n');
-    return lines.map((line, i) =>
-      `<span class="oic-ev-payload-line"><span class="oic-ev-line-num">${i + 1}</span>${escapeHtml(line)}</span>`
-    ).join('');
+    return lines.map((line, i) => {
+      let content = escapeHtml(line);
+      if (query) content = highlightMatches(content, query);
+      return `<span class="oic-ev-payload-line"><span class="oic-ev-line-num">${i + 1}</span>${content}</span>`;
+    }).join('');
   }
 
   // ── Lazy tree rendering ──────────────────────────────────────────────
@@ -403,12 +412,12 @@
     setTimeout(() => URL.revokeObjectURL(url), 500);
   }
 
-  function openFullscreenPayload(text, mediaType, title) {
+  function openFullscreenPayload(text, mediaType, title, query) {
     const existing = document.getElementById('oic-ev-fullscreen');
     if (existing) existing.remove();
 
     const ovl = document.getElementById('oic-ev-overlay');
-    const theme = ovl ? (ovl.getAttribute('data-theme') || 'light') : 'light';
+    const theme = ovl ? (ovl.getAttribute('data-theme') || 'dark') : 'dark';
 
     const fs = document.createElement('div');
     fs.id = 'oic-ev-fullscreen';
@@ -449,7 +458,7 @@
 
     const body = document.createElement('pre');
     body.className = 'oic-ev-fs-body';
-    body.innerHTML = formatPayloadWithLineNumbers(text || '', mediaType);
+    body.innerHTML = formatPayloadWithLineNumbers(text || '', mediaType, query);
 
     fs.appendChild(header);
     fs.appendChild(body);
@@ -490,7 +499,7 @@
     });
     actions.appendChild(expandBtn);
 
-    actions.appendChild(mkBtn('⛶', 'Open in fullscreen', () => openFullscreenPayload(getText(), mediaType, baseName)));
+    actions.appendChild(mkBtn('⛶', 'Open in fullscreen', () => openFullscreenPayload(getText(), mediaType, baseName, currentSearchQuery)));
 
     return actions;
   }
@@ -564,7 +573,7 @@
     container.appendChild(buildPayloadActions(() => payloadText, item.payloadMediaType, container, baseName));
 
     const codeEl = document.createElement('code');
-    codeEl.innerHTML = formatPayloadWithLineNumbers(payloadText, item.payloadMediaType);
+    codeEl.innerHTML = formatPayloadWithLineNumbers(payloadText, item.payloadMediaType, currentSearchQuery);
     container.appendChild(codeEl);
 
     const afterEl = nodeEl.querySelector(':scope > .oic-ev-payload-headers') || nodeEl.querySelector('.oic-ev-node-header');
@@ -619,6 +628,8 @@
   let searchMatches = [];     // ordered array of matching identifiers
   let searchMatchSet = null;  // Set for quick lookup
   let searchCurrentIdx = -1;  // current navigation index
+  let currentSearchQuery = ''; // current search term for payload highlighting
+  let searchFilterMode = true; // true = hide non-matching nodes, false = just highlight
 
   function searchDataTree(items, query) {
     const q = query.toLowerCase();
@@ -698,7 +709,7 @@
     }
   }
 
-  function highlightSearch(container, matchIds) {
+  function highlightSearch(container, matchIds, skipHeaderHighlight) {
     container.querySelectorAll('.oic-ev-node-header.oic-ev-highlighted').forEach(h => h.classList.remove('oic-ev-highlighted'));
     container.querySelectorAll('.oic-ev-node-header.oic-ev-current-match').forEach(h => h.classList.remove('oic-ev-current-match'));
     if (!matchIds || matchIds.size === 0) return;
@@ -707,9 +718,83 @@
     container.querySelectorAll('.oic-ev-node').forEach(nodeEl => {
       const id = nodeEl.dataset.identifier;
       if (matchIds.has(id)) {
-        const header = nodeEl.querySelector(':scope > .oic-ev-node-header');
-        if (header) header.classList.add('oic-ev-highlighted');
+        if (!skipHeaderHighlight) {
+          const header = nodeEl.querySelector(':scope > .oic-ev-node-header');
+          if (header) header.classList.add('oic-ev-highlighted');
+        }
         expandAncestorChain(nodeEl, container);
+      }
+    });
+  }
+
+  function refreshMessageHighlights(container, query) {
+    container.querySelectorAll('.oic-ev-node').forEach(nodeEl => {
+      const item = nodeEl._itemData;
+      if (!item) return;
+      const msgEl = nodeEl.querySelector(':scope > .oic-ev-node-header .oic-ev-message');
+      if (!msgEl) return;
+
+      // Rebuild message content with highlights
+      let msgText = escapeHtml(item.message || '');
+      if (query) msgText = highlightMatches(msgText, query);
+      if (item.totalIterations) {
+        msgText += ` <span class="oic-ev-iter-badge">${escapeHtml(item.totalIterations)} iterations</span>`;
+      }
+      if (item.loopIterations && !(item.message || '').startsWith('Iteration:')) {
+        msgText += ` <span class="oic-ev-iter-badge">iter ${escapeHtml(item.loopIterations)}</span>`;
+      }
+      if (item.adapter) {
+        msgText += ` <span class="oic-ev-adapter-badge">${escapeHtml(item.adapter)}</span>`;
+      }
+      if (item.invokedBy) {
+        msgText += ` <span style="color:#64748b;font-size:11px"> by ${escapeHtml(item.invokedBy)}</span>`;
+      }
+      msgEl.innerHTML = msgText;
+    });
+  }
+
+  // Build set of identifiers that should be visible (matches + their ancestors)
+  function buildVisibleSet(items, matchIds) {
+    const visible = new Set(matchIds);
+    // For each match, add all ancestors
+    for (const id of matchIds) {
+      const path = findPathInDataTree(items, id);
+      if (path) {
+        for (const ancestorId of path) visible.add(ancestorId);
+      }
+    }
+    return visible;
+  }
+
+  function applySearchFilter(container, matchIds, filterEnabled) {
+    if (!filterEnabled || !matchIds || matchIds.size === 0) {
+      // Show all nodes
+      container.querySelectorAll('.oic-ev-node.oic-ev-filtered-out').forEach(n => {
+        n.classList.remove('oic-ev-filtered-out');
+      });
+      return;
+    }
+
+    const visibleSet = buildVisibleSet(activityData.items, matchIds);
+
+    container.querySelectorAll('.oic-ev-node').forEach(nodeEl => {
+      const id = nodeEl.dataset.identifier;
+      if (visibleSet.has(id)) {
+        nodeEl.classList.remove('oic-ev-filtered-out');
+      } else {
+        nodeEl.classList.add('oic-ev-filtered-out');
+      }
+    });
+  }
+
+  function refreshOpenPayloads(container, query) {
+    container.querySelectorAll('.oic-ev-payload-content code').forEach(codeEl => {
+      const nodeEl = codeEl.closest('.oic-ev-node');
+      if (!nodeEl || !nodeEl._itemData) return;
+      const item = nodeEl._itemData;
+      const payloadText = item.payload;
+      if (payloadText) {
+        codeEl.innerHTML = formatPayloadWithLineNumbers(payloadText, item.payloadMediaType, query);
       }
     });
   }
@@ -752,6 +837,15 @@
     } else {
       countEl.textContent = `${searchMatches.length.toLocaleString()} matches`;
     }
+  }
+
+  function updateSearchWarning() {
+    if (!overlay) return;
+    const warningEl = overlay.querySelector('#oic-ev-search-warning');
+    if (!warningEl) return;
+    const searchInput = overlay.querySelector('#oic-ev-search');
+    const hasQuery = searchInput && searchInput.value.trim().length > 0;
+    warningEl.style.display = (hasQuery && !allPayloadsLoaded) ? 'block' : 'none';
   }
 
   // ── Export / Import ─────────────────────────────────────────────────
@@ -899,7 +993,11 @@
       <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px">
         <h2>Enhanced Activity Stream</h2>
         <span class="oic-ev-header-info">${escapeHtml(activityData.flowCode || '')} | ${escapeHtml(activityData.flowVersion || '')}</span>
-        <span class="oic-ev-header-info">Instance: ${escapeHtml(instanceId)}</span>
+        <span class="oic-ev-instance-group">
+          <label>Instance:</label>
+          <input type="text" id="oic-ev-instance-input" class="oic-ev-instance-input" value="${escapeHtml(instanceId)}" placeholder="Instance ID">
+          <button id="oic-ev-instance-load" class="oic-ev-instance-load-btn" title="Load this instance">Load</button>
+        </span>
         <span class="oic-ev-header-info">Tracing: ${escapeHtml(activityData.tracingLevel || 'N/A')}</span>
       </div>
       <div class="oic-ev-header-actions">
@@ -953,8 +1051,20 @@
       <button class="oic-ev-search-nav" id="oic-ev-search-prev" title="Previous match (Shift+Enter)">\u25B2</button>
       <button class="oic-ev-search-nav" id="oic-ev-search-next" title="Next match (Enter)">\u25BC</button>
       <span class="oic-ev-search-count" id="oic-ev-search-count"></span>
+      <label class="oic-ev-filter-toggle" title="Hide non-matching nodes">
+        <input type="checkbox" id="oic-ev-filter-mode" ${searchFilterMode ? 'checked' : ''}>
+        <span>Filter</span>
+      </label>
     `;
     topBar.appendChild(searchBar);
+
+    // Payload search warning
+    const searchWarning = document.createElement('div');
+    searchWarning.id = 'oic-ev-search-warning';
+    searchWarning.className = 'oic-ev-search-warning';
+    searchWarning.style.display = 'none';
+    searchWarning.textContent = 'Not all payloads downloaded — search may miss payload content. Download all payloads for complete results.';
+    topBar.appendChild(searchWarning);
 
     overlay.appendChild(topBar);
 
@@ -972,6 +1082,35 @@
     overlay.querySelector('#oic-ev-theme-select').addEventListener('change', (e) => {
       applyTheme(e.target.value);
     });
+
+    // Instance ID load
+    const instanceInput = overlay.querySelector('#oic-ev-instance-input');
+    const instanceLoadBtn = overlay.querySelector('#oic-ev-instance-load');
+    const loadNewInstance = async () => {
+      const newId = instanceInput.value.trim();
+      if (!newId) {
+        instanceInput.focus();
+        return;
+      }
+      instanceLoadBtn.disabled = true;
+      instanceLoadBtn.textContent = 'Loading...';
+      try {
+        allPayloadsLoaded = false;
+        currentInstanceId = newId;
+        activityData = await fetchActivityStream(newId);
+        chrome.storage.local.set({ lastInstanceId: newId });
+        renderActivityView(newId);
+      } catch (err) {
+        instanceLoadBtn.disabled = false;
+        instanceLoadBtn.textContent = 'Load';
+        alert('Failed to load instance: ' + err.message);
+      }
+    };
+    instanceLoadBtn.addEventListener('click', loadNewInstance);
+    instanceInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') loadNewInstance();
+    });
+
     overlay.querySelector('#oic-ev-refresh').addEventListener('click', async () => {
       const refreshBtn = overlay.querySelector('#oic-ev-refresh');
       refreshBtn.disabled = true;
@@ -1018,12 +1157,17 @@
             // Re-run active search to include payload content
             const q = overlay.querySelector('#oic-ev-search').value.trim();
             if (q) {
+              currentSearchQuery = q;
               searchMatches = searchDataTree(activityData.items, q);
               searchMatchSet = new Set(searchMatches);
               searchCurrentIdx = -1;
-              highlightSearch(tree, searchMatchSet);
+              highlightSearch(tree, searchMatchSet, searchFilterMode);
+              applySearchFilter(tree, searchMatchSet, searchFilterMode);
+              refreshMessageHighlights(tree, searchFilterMode ? q : '');
+              refreshOpenPayloads(tree, q);
               updateSearchCounter();
             }
+            updateSearchWarning();
           } else {
             progressEl.textContent = `${done.toLocaleString()} / ${total.toLocaleString()}`;
           }
@@ -1038,19 +1182,28 @@
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(() => {
         const q = e.target.value.trim();
+        currentSearchQuery = q;
         if (!q) {
           searchMatches = [];
           searchMatchSet = null;
           searchCurrentIdx = -1;
-          highlightSearch(tree, null);
+          highlightSearch(tree, null, false);
+          applySearchFilter(tree, null, searchFilterMode);
+          refreshMessageHighlights(tree, '');
+          refreshOpenPayloads(tree, '');
           updateSearchCounter();
+          updateSearchWarning();
           return;
         }
         searchMatches = searchDataTree(activityData.items, q);
         searchMatchSet = new Set(searchMatches);
         searchCurrentIdx = -1;
-        highlightSearch(tree, searchMatchSet);
+        highlightSearch(tree, searchMatchSet, searchFilterMode);
+        applySearchFilter(tree, searchMatchSet, searchFilterMode);
+        refreshMessageHighlights(tree, searchFilterMode ? q : '');
+        refreshOpenPayloads(tree, q);
         updateSearchCounter();
+        updateSearchWarning();
       }, 400);
     });
 
@@ -1066,6 +1219,14 @@
     });
     overlay.querySelector('#oic-ev-search-next').addEventListener('click', () => {
       navigateToMatch(tree, 'next');
+    });
+
+    // Filter mode toggle
+    overlay.querySelector('#oic-ev-filter-mode').addEventListener('change', (e) => {
+      searchFilterMode = e.target.checked;
+      highlightSearch(tree, searchMatchSet, searchFilterMode);
+      applySearchFilter(tree, searchMatchSet, searchFilterMode);
+      refreshMessageHighlights(tree, searchFilterMode ? currentSearchQuery : '');
     });
   }
 
@@ -1121,6 +1282,9 @@
     }
 
     allPayloadsLoaded = false;
+
+    // Close any existing overlay before opening new one
+    closeViewer();
 
     overlay = document.createElement('div');
     overlay.id = 'oic-ev-overlay';
