@@ -92,6 +92,40 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Search across runs — open the cross-run master-detail viewer
+  document.getElementById('crossRunBtn').addEventListener('click', () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tab = tabs[0];
+      if (!tab) {
+        statusEl.textContent = 'No active tab found';
+        statusEl.className = 'status error';
+        return;
+      }
+      if (!tab.url || !tab.url.includes('oraclecloud.com')) {
+        statusEl.textContent = 'Please navigate to an OIC page first';
+        statusEl.className = 'status error';
+        return;
+      }
+      const send = () => {
+        chrome.tabs.sendMessage(tab.id, { type: 'openCrossRun' }, () => {
+          if (chrome.runtime.lastError) return;
+          window.close();
+        });
+      };
+      chrome.tabs.sendMessage(tab.id, { type: 'ping' }, () => {
+        if (chrome.runtime.lastError) {
+          statusEl.textContent = 'Injecting viewer...';
+          statusEl.className = 'status';
+          chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] })
+            .then(() => chrome.scripting.insertCSS({ target: { tabId: tab.id }, files: ['content.css'] }))
+            .then(() => setTimeout(send, 300));
+        } else {
+          send();
+        }
+      });
+    });
+  });
+
   // Import JSON file
   document.getElementById('importBtn').addEventListener('click', () => {
     const input = document.createElement('input');
