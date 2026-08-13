@@ -43,12 +43,6 @@
     return { badgeColor: badgeColor, maxXpathChars: 60 };
   }
 
-  function integrationInstance() {
-    try {
-      return new URLSearchParams(window.location.search).get('integrationInstance') || '';
-    } catch (e) { return ''; }
-  }
-
   function el(tag, className, text) {
     var e = document.createElement(tag);
     if (className) e.className = className;
@@ -256,7 +250,19 @@
     var treeC = panel.querySelector('#oic-ev-ivp-tree');
     if (treeC) treeC.innerHTML = '';
 
-    Core.fetchPlainArchive(code, version, integrationInstance())
+    Core.fetchArchive(code, version, null)
+      .catch(function (err) {
+        // Plain endpoint failed — the integration is probably project-scoped.
+        // Discover its project and retry via the temp-deployment .car flow
+        // (shows the shared consent modal on first use).
+        if (err && err.cancelled) throw err;
+        setStatus('Not found directly — checking projects…');
+        return Core.lookupProjectCode(code, version).then(function (pc) {
+          if (!pc) throw err;
+          setStatus('Project ' + pc + ' — building archive…');
+          return Core.fetchArchive(code, version, pc, function (msg) { setStatus(msg); });
+        });
+      })
       .then(function (buf) {
         setStatus('Parsing archive…');
         return Core.parseArchive(buf);
@@ -276,11 +282,11 @@
       })
       .catch(function (err) {
         loadingKey = null;
-        var msg = 'Load failed: ' + (err && err.message ? err.message : String(err));
-        if (/404/.test(msg)) {
-          msg += ' — project-scoped integrations are not supported here yet; open it in the Integration Viewer extension.';
+        if (err && err.cancelled) {
+          setStatus('Cancelled.');
+          return;
         }
-        setStatus(msg, true);
+        setStatus('Load failed: ' + (err && err.message ? err.message : String(err)), true);
       });
   }
 

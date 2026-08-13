@@ -1119,19 +1119,335 @@
 
     return node;
   }
-  /* ── Plain (non-project) .iar archive download ─────────────────────── */
-  // Project-scoped integrations need the temp-deployment .car flow, which
-  // stays in the integration viewer extension. This covers the common case.
-  function fetchPlainArchive(code, version, integrationInstance) {
+  /* ── Archive download (.iar / project .car) ─────────────────────────
+     Moved verbatim from the integration viewer. getIntegrationInstance
+     reads the OIC console URL, valid for any host extension. The
+     consent modal targets whichever host root exists (#oic-iv-overlay
+     or #oic-ev-ivp) for theming; its CSS ships with both extensions. */
+
+  function getIntegrationInstance() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      return params.get('integrationInstance') || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  var AUTH_HEADERS = { 'Authorization': 'session' };
+
+  /* ── Archive (.iar) download/import and merging ─────────────────────── */
+
+  // Download the integration archive (ZIP) from OIC.
+  // For non-project integrations: GET /integrations/{code}|{version}/archive (returns .iar).
+  // For project integrations: orchestrate temp deployment + project archive (returns .car).
+  // onProgress is optional — receives short status strings during the project flow.
+  function fetchArchive(code, version, projectCode, onProgress) {
+    if (projectCode) {
+      return fetchProjectIntegrationArchiveCar(projectCode, '', code, version, onProgress);
+    }
+    var inst = getIntegrationInstance();
     var url = '/ic/api/integration/v1/integrations/' +
       encodeURIComponent(code + '|' + version) +
       '/archive?includeRecordingFlag=false&allowLockedProject=true' +
-      (integrationInstance ? '&integrationInstance=' + encodeURIComponent(integrationInstance) : '');
-    return fetch(url, { headers: { 'Authorization': 'session' }, credentials: 'same-origin' })
+      (inst ? '&integrationInstance=' + encodeURIComponent(inst) : '');
+    return fetch(url, { headers: AUTH_HEADERS, credentials: 'same-origin' })
       .then(function (r) {
         if (!r.ok) throw new Error('Archive fetch failed: ' + r.status + ' ' + r.statusText);
         return r.arrayBuffer();
       });
+  }
+
+  /* ── Project archive (.car) flow: temp deployment + archive + cleanup ─ */
+
+  function projectsApiBase(projectCode) {
+    return '/ic/api/integration/v1/projects/' + encodeURIComponent(projectCode);
+  }
+
+  function withInst(url) {
+    var inst = getIntegrationInstance();
+    if (!inst) return url;
+    var sep = url.indexOf('?') === -1 ? '?' : '&';
+    return url + sep + 'integrationInstance=' + encodeURIComponent(inst);
+  }
+
+  // OIC requires this header on state-changing calls (POST/PUT/DELETE) to its design API.
+  var CSRF_HEADERS = { 'Authorization': 'session', 'X-OCI-Splat-CSRF': '1' };
+
+  function postJson(url, body) {
+    return fetch(url, {
+      method: 'POST',
+      headers: Object.assign({}, CSRF_HEADERS, {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }),
+      credentials: 'same-origin',
+      body: JSON.stringify(body)
+    });
+  }
+
+  function createProjectDeployment(projectCode, deploymentSpec) {
+    var url = withInst(projectsApiBase(projectCode) + '/deployments');
+    return postJson(url, deploymentSpec).then(function (r) {
+      if (!r.ok) {
+        return r.text().then(function (t) {
+          throw new Error('Deployment create failed: ' + r.status + ' ' + (t || r.statusText));
+        });
+      }
+      return r.json().catch(function () { return null; });
+    });
+  }
+
+  function deleteProjectDeployment(projectCode, deploymentCode) {
+    var url = withInst(projectsApiBase(projectCode) + '/deployments/' + encodeURIComponent(deploymentCode));
+    return fetch(url, {
+      method: 'DELETE',
+      headers: Object.assign({}, CSRF_HEADERS, { 'Accept': 'application/json' }),
+      credentials: 'same-origin'
+    }).then(function (r) {
+      if (!r.ok && r.status !== 404) throw new Error('Deployment delete failed: ' + r.status);
+      return true;
+    });
+  }
+
+  // Poll an OIC work request until it terminates. Returns the final item.
+  // Status values: ACCEPTED, IN_PROGRESS, SUCCEEDED, FAILED, CANCELED.
+  function pollWorkRequest(workRequestId) {
+    var iterations = 0;
+    function step() {
+      iterations++;
+      var url = withInst('/ic/api/integration/v1/workRequests?q=' +
+        encodeURIComponent("{ids:'" + workRequestId + "'}"));
+      return fetch(url, {
+        headers: { 'Authorization': 'session', 'Accept': 'application/json' },
+        credentials: 'same-origin'
+      }).then(function (r) {
+        if (!r.ok) throw new Error('Work request poll failed: ' + r.status);
+        return r.json();
+      }).then(function (body) {
+        var item = body && body.items && body.items[0];
+        if (!item) throw new Error('Work request not found: ' + workRequestId);
+        var status = String(item.status || '').toUpperCase();
+        if (status === 'SUCCEEDED') return item;
+        if (status === 'FAILED' || status === 'CANCELED' || status === 'CANCELLED') {
+          var msg = (item.data && item.data.message) || status;
+          throw new Error('Project archive ' + status + ': ' + msg);
+        }
+        if (iterations > 80) throw new Error('Project archive timed out (>120s)');
+        return new Promise(function (res) { setTimeout(res, 1500); }).then(step);
+      });
+    }
+    return step();
+  }
+
+  // POST /projects/{pc}/archive?enableAsync=true with archiveSpec; resolves to ArrayBuffer of the .car.
+  // Real OIC async flow:
+  //   1. POST → 202, response header `oic-work-request-id: <uuid>`.
+  //   2. Poll GET /workRequests?q={ids:'<uuid>'} until items[0].status === 'SUCCEEDED'.
+  //   3. GET /projects/{pc}/archive?archiveName=<items[0].data.objectName> → binary .car.
+  function archiveProjectDeployment(projectCode, archiveSpec) {
+    var postUrl = withInst(projectsApiBase(projectCode) + '/archive?enableAsync=true');
+    return fetch(postUrl, {
+      method: 'POST',
+      headers: Object.assign({}, CSRF_HEADERS, {
+        'Content-Type': 'application/json',
+        'Accept': 'application/octet-stream, application/json'
+      }),
+      credentials: 'same-origin',
+      body: JSON.stringify(archiveSpec)
+    }).then(function (r) {
+      if (!r.ok && r.status !== 202) {
+        return r.text().then(function (t) {
+          throw new Error('Project archive failed: ' + r.status + ' ' + (t || r.statusText));
+        });
+      }
+      // Sync mode (rare): 200 + binary body.
+      var ct = (r.headers.get('content-type') || '').toLowerCase();
+      if (r.status === 200 && ct.indexOf('application/json') === -1 &&
+          ct.indexOf('text/') === -1 && ct !== '') {
+        return r.arrayBuffer();
+      }
+      var workRequestId = r.headers.get('oic-work-request-id') || r.headers.get('Oic-Work-Request-Id');
+      if (!workRequestId) {
+        throw new Error('Project archive: missing oic-work-request-id header');
+      }
+      return pollWorkRequest(workRequestId).then(function (item) {
+        var objectName = item && item.data && item.data.objectName;
+        if (!objectName) throw new Error('Work request succeeded but objectName missing');
+        var dlUrl = withInst(projectsApiBase(projectCode) + '/archive?archiveName=' + encodeURIComponent(objectName));
+        return fetch(dlUrl, {
+          headers: { 'Authorization': 'session', 'Accept': 'application/octet-stream' },
+          credentials: 'same-origin'
+        }).then(function (r2) {
+          if (!r2.ok) throw new Error('Archive download failed: ' + r2.status);
+          return r2.arrayBuffer();
+        });
+      });
+    });
+  }
+
+  // Orchestrate: confirm with user → create temp deployment → archive → cleanup.
+  // projectName may be empty; falls back to projectCode for the archive payload.
+  function fetchProjectIntegrationArchiveCar(projectCode, projectName, code, version, onProgress) {
+    function emit(msg) { if (typeof onProgress === 'function') onProgress(msg); }
+    return ensureProjectArchiveConsent(projectCode, code).then(function (ok) {
+      if (!ok) { var err = new Error('Cancelled by user.'); err.cancelled = true; throw err; }
+      var ts = Date.now().toString(36).toUpperCase();
+      var deploymentCode = 'TMP_VIEWER_' + ts;
+      // Name rules per OIC: letters/numbers/spaces/( _ - ), begin with letter or underscore, max 50.
+      var safeCode = String(code || '').replace(/[^A-Za-z0-9 _-]/g, '_');
+      var deploymentName = ('Temp viewer ' + safeCode).slice(0, 50).replace(/[\s_-]+$/, '');
+      var deploymentSpec = {
+        name: deploymentName,
+        code: deploymentCode,
+        description: 'Auto-created by OIC Integration Viewer extension; safe to delete.',
+        integrations: [{ code: code, version: version }],
+        agents: [], robots: [], processes: [], decisions: [], b2btradingpartners: []
+      };
+      var archiveSpec = {
+        name: projectName || projectCode,
+        code: projectCode,
+        type: 'DEVELOPED',
+        builtBy: '',
+        label: deploymentCode
+      };
+      var deploymentCreated = false;
+      emit('Creating temporary deployment…');
+      return createProjectDeployment(projectCode, deploymentSpec)
+        .then(function () {
+          deploymentCreated = true;
+          emit('Building archive…');
+          return archiveProjectDeployment(projectCode, archiveSpec);
+        })
+        .then(function (ab) {
+          emit('Cleaning up…');
+          return ab;
+        })
+        .finally(function () {
+          if (deploymentCreated) {
+            deleteProjectDeployment(projectCode, deploymentCode).catch(function (e) {
+              console.warn('OIC viewer: temp deployment cleanup failed', e);
+            });
+          }
+        });
+    });
+  }
+
+  // First-run consent modal — explains the temp-deployment flow once.
+  // Resolves to true (proceed) or false (cancel). Stores dismissal in chrome.storage.local.
+  function ensureProjectArchiveConsent(projectCode, integrationCode) {
+    return new Promise(function (resolve) {
+      var done = false;
+      function finish(value) { if (done) return; done = true; resolve(value); }
+
+      try {
+        chrome.storage.local.get(['ivProjectArchiveConfirmDismissed'], function (data) {
+          if (data && data.ivProjectArchiveConfirmDismissed) { finish(true); return; }
+          showConsentModal();
+        });
+      } catch (e) { showConsentModal(); }
+
+      function showConsentModal() {
+        var existing = document.getElementById('iv-consent-modal');
+        if (existing) existing.remove();
+
+        var ovl = document.getElementById('oic-iv-overlay') || document.getElementById('oic-ev-ivp');
+        var theme = ovl ? (ovl.getAttribute('data-theme') || 'light') : 'light';
+
+        var backdrop = document.createElement('div');
+        backdrop.id = 'iv-consent-modal';
+        backdrop.className = 'iv-modal-backdrop';
+        backdrop.setAttribute('data-theme', theme);
+
+        var panel = document.createElement('div');
+        panel.className = 'iv-modal';
+
+        var title = document.createElement('div');
+        title.className = 'iv-modal-title';
+        title.textContent = 'Project integration export';
+
+        var body = document.createElement('div');
+        body.className = 'iv-modal-body';
+        body.textContent = 'To download integration "' + integrationCode + '" from project "' + projectCode +
+          '", the viewer needs to create a temporary deployment in OIC, archive it, then delete the deployment. Continue?';
+
+        var checkRow = document.createElement('label');
+        checkRow.className = 'iv-modal-check';
+        var check = document.createElement('input');
+        check.type = 'checkbox';
+        var checkLabel = document.createElement('span');
+        checkLabel.textContent = "Don't ask again";
+        checkRow.appendChild(check);
+        checkRow.appendChild(checkLabel);
+
+        var btnBar = document.createElement('div');
+        btnBar.className = 'iv-modal-btnbar';
+        var cancelBtn = document.createElement('button');
+        cancelBtn.className = 'iv-modal-btn iv-modal-btn-cancel';
+        cancelBtn.textContent = 'Cancel';
+        var okBtn = document.createElement('button');
+        okBtn.className = 'iv-modal-btn iv-modal-btn-ok';
+        okBtn.textContent = 'Continue';
+        btnBar.appendChild(cancelBtn);
+        btnBar.appendChild(okBtn);
+
+        panel.appendChild(title);
+        panel.appendChild(body);
+        panel.appendChild(checkRow);
+        panel.appendChild(btnBar);
+        backdrop.appendChild(panel);
+        document.body.appendChild(backdrop);
+
+        function close(value) {
+          if (value && check.checked) {
+            try { chrome.storage.local.set({ ivProjectArchiveConfirmDismissed: true }); } catch (e) { /* noop */ }
+          }
+          document.removeEventListener('keydown', onKey);
+          backdrop.remove();
+          finish(value);
+        }
+        function onKey(e) {
+          if (e.key === 'Escape') { e.stopPropagation(); close(false); }
+          else if (e.key === 'Enter') { e.preventDefault(); close(true); }
+        }
+
+        cancelBtn.addEventListener('click', function () { close(false); });
+        okBtn.addEventListener('click', function () { close(true); });
+        backdrop.addEventListener('click', function (e) { if (e.target === backdrop) close(false); });
+        document.addEventListener('keydown', onKey);
+
+        setTimeout(function () { okBtn.focus(); }, 0);
+      }
+    });
+  }
+
+  // Find the project a given integration belongs to (or null).
+  // Uses the global integrations search with extend:'projects' so each
+  // item carries projectId. Exact version match preferred; any version
+  // of the same code is an acceptable fallback (integrations cannot move
+  // between projects across versions).
+  function lookupProjectCode(code, version) {
+    var inst = getIntegrationInstance();
+    var base = '/ic/api/integration/v1/integrations?offset=0&limit=20&return=landing';
+    if (inst) base += '&integrationInstance=' + encodeURIComponent(inst);
+    var safe = String(code || '').replace(/'/g, "\'");
+    var q = encodeURIComponent("{code:'" + safe + "',extend:'projects'}");
+    return fetch(base + '&q=' + q, { headers: AUTH_HEADERS, credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : { items: [] }; })
+      .then(function (body) {
+        var items = (body && body.items) || [];
+        var fallback = null;
+        for (var i = 0; i < items.length; i++) {
+          var it = items[i];
+          if (!it || it.code !== code) continue;
+          var pc = it.projectId || it.projectCode || '';
+          if (!pc) continue;
+          if (String(it.version) === String(version)) return pc;
+          if (!fallback) fallback = pc;
+        }
+        return fallback;
+      })
+      .catch(function () { return null; });
   }
 
   window.OicIvCore = {
@@ -1157,6 +1473,7 @@
     getSearchableText: getSearchableText,
     renderDetail: renderDetail,
     renderNode: renderNode,
-    fetchPlainArchive: fetchPlainArchive
+    fetchArchive: fetchArchive,
+    lookupProjectCode: lookupProjectCode
   };
 })();
