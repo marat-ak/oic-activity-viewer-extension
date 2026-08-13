@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "OIC Activity Stream Enhanced Viewer",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "description": "Fast collapsible tree view for OIC Activity Stream, with cross-run search across all executions of an integration.",
   "permissions": [
     "activeTab",
@@ -24,6 +24,9 @@
         "*://*.oraclecloud.com/*"
       ],
       "js": [
+        "jszip.min.js",
+        "iv-core.js",
+        "iv-panel.js",
         "content.js"
       ],
       "css": [

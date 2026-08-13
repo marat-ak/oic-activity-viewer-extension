@@ -18,7 +18,34 @@
   function applyTheme(themeId) {
     currentTheme = themeId;
     if (overlay) overlay.dataset.theme = themeId;
+    if (window.OicIvPanel) window.OicIvPanel.setTheme(themeId);
     chrome.storage.local.set({ viewerTheme: themeId });
+  }
+
+  // ── Integration definition panel bridge (iv-panel.js) ──────────────
+
+  // Ancestor chain of `target` inside the activity-stream data tree
+  // (root → parent), used to fall back to a parent milestone when an
+  // item itself has no matching definition node.
+  function findItemPath(list, target, path) {
+    for (const it of list) {
+      if (it === target) return path;
+      if (it.children) {
+        const r = findItemPath(it.children, target, [...path, it]);
+        if (r) return r;
+      }
+    }
+    return null;
+  }
+
+  function ivPanelOpts(extra) {
+    const opts = {
+      code: activityData && activityData.flowCode,
+      version: activityData && activityData.flowVersion,
+      theme: currentTheme,
+      onLayout: (px) => { if (overlay) overlay.style.right = px ? px + 'px' : ''; }
+    };
+    return Object.assign(opts, extra || {});
   }
 
   function loadTheme(callback) {
@@ -299,6 +326,21 @@
     }
     msg.innerHTML = msgText;
     header.appendChild(msg);
+
+    // Jump to this activity's definition in the integration panel
+    if (window.OicIvPanel) {
+      const defBtn = document.createElement('button');
+      defBtn.className = 'oic-ev-payload-btn oic-ev-def-btn';
+      defBtn.textContent = '⤳';
+      defBtn.title = 'Show definition in integration panel';
+      defBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const ancestors = findItemPath(activityData.items, item, []) || [];
+        const fallbacks = ancestors.map(a => a.milestone).filter(Boolean).reverse();
+        window.OicIvPanel.navigateTo(item, ivPanelOpts({ fallbackMilestones: fallbacks }));
+      });
+      header.appendChild(defBtn);
+    }
 
     // Payload button — show if payloadExists OR if inline payload content is present
     if (item.payloadExists || item.payload) {
@@ -1016,6 +1058,8 @@
         <button id="oic-ev-expand-1">Level 1</button>
         <button id="oic-ev-expand-2">Level 2</button>
         <button id="oic-ev-expand-3">Level 3</button>
+        <span class="oic-ev-header-sep"></span>
+        <button id="oic-ev-open-iv" title="Open the integration definition in a side panel">Integration ⤳</button>
         <button class="oic-ev-close-btn" id="oic-ev-close">Close (Esc)</button>
       </div>
     `;
@@ -1136,6 +1180,9 @@
     root.querySelector('#oic-ev-import').addEventListener('click', () => {
       importActivityData(openImportedData);
     });
+    root.querySelector('#oic-ev-open-iv').addEventListener('click', () => {
+      if (window.OicIvPanel) window.OicIvPanel.toggle(ivPanelOpts());
+    });
     const closeBtn = root.querySelector('#oic-ev-close');
     // Embedded in the cross-run detail pane: the outer overlay owns closing, so hide this
     // (it would otherwise close the whole extension from within the detail view).
@@ -1244,6 +1291,7 @@
   }
 
   function closeViewer() {
+    if (window.OicIvPanel) window.OicIvPanel.close();
     if (overlay) {
       overlay.remove();
       overlay = null;

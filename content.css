@@ -1417,3 +1417,488 @@
   color: var(--ev-text-faint);
   font-size: 14px;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Integration Definition Panel (iv-panel.js)
+   Right-side panel rendering the integration blueprint tree via the
+   shared iv-core.js module. Node markup/classes (.iv-*) match the
+   OIC Integration Viewer extension; styles are scoped to #oic-ev-ivp.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Theme variables (mirrors integration viewer themes) */
+#oic-ev-ivp,
+#oic-ev-ivp[data-theme="light"],
+#oic-ev-ivp-fs,
+#oic-ev-ivp-fs[data-theme="light"] {
+  --iv-bg: #f5f6f8;
+  --iv-text: #1a1a1a;
+  --iv-text-muted: #64748b;
+  --iv-text-faint: #94a3b8;
+  --iv-border: #e2e8f0;
+  --iv-accent: #1a73e8;
+  --iv-header-bg: #1e293b;
+  --iv-header-text: #ffffff;
+  --iv-surface: #ffffff;
+  --iv-node-hover: #f1f5f9;
+  --iv-node-border: #e2e8f0;
+  --iv-highlight-bg: #fbbf24;
+  --iv-highlight-text: #1a1a1a;
+  --iv-search-bg: #ffffff;
+  --iv-search-border: #d1d5db;
+  --iv-toolbar-bg: #ffffff;
+  --iv-toolbar-border: #e2e8f0;
+  --iv-badge-text: #ffffff;
+  --iv-scrollbar-track: #e2e8f0;
+  --iv-scrollbar-thumb: #94a3b8;
+  --iv-scrollbar-thumb-hover: #64748b;
+  --iv-breadcrumb-color: #94a3b8;
+}
+
+#oic-ev-ivp[data-theme="dark"],
+#oic-ev-ivp-fs[data-theme="dark"] {
+  --iv-bg: #0f172a;
+  --iv-text: #e2e8f0;
+  --iv-text-muted: #94a3b8;
+  --iv-text-faint: #64748b;
+  --iv-border: #334155;
+  --iv-accent: #60a5fa;
+  --iv-header-bg: #020617;
+  --iv-header-text: #f1f5f9;
+  --iv-surface: #1e293b;
+  --iv-node-hover: #1e293b;
+  --iv-node-border: #334155;
+  --iv-highlight-bg: #fbbf24;
+  --iv-highlight-text: #0f172a;
+  --iv-search-bg: #1e293b;
+  --iv-search-border: #475569;
+  --iv-toolbar-bg: #1e293b;
+  --iv-toolbar-border: #334155;
+  --iv-badge-text: #ffffff;
+  --iv-scrollbar-track: #1e293b;
+  --iv-scrollbar-thumb: #475569;
+  --iv-scrollbar-thumb-hover: #64748b;
+  --iv-breadcrumb-color: #475569;
+}
+
+#oic-ev-ivp[data-theme="high-contrast"],
+#oic-ev-ivp-fs[data-theme="high-contrast"] {
+  --iv-bg: #000000;
+  --iv-text: #ffffff;
+  --iv-text-muted: #d4d4d4;
+  --iv-text-faint: #a3a3a3;
+  --iv-border: #525252;
+  --iv-accent: #38bdf8;
+  --iv-header-bg: #171717;
+  --iv-header-text: #ffffff;
+  --iv-surface: #171717;
+  --iv-node-hover: #262626;
+  --iv-node-border: #525252;
+  --iv-highlight-bg: #facc15;
+  --iv-highlight-text: #000000;
+  --iv-search-bg: #171717;
+  --iv-search-border: #525252;
+  --iv-toolbar-bg: #171717;
+  --iv-toolbar-border: #525252;
+  --iv-badge-text: #ffffff;
+  --iv-scrollbar-track: #171717;
+  --iv-scrollbar-thumb: #737373;
+  --iv-scrollbar-thumb-hover: #a3a3a3;
+  --iv-breadcrumb-color: #737373;
+}
+
+#oic-ev-ivp[data-theme="solarized"],
+#oic-ev-ivp-fs[data-theme="solarized"] {
+  --iv-bg: #002b36;
+  --iv-text: #839496;
+  --iv-text-muted: #657b83;
+  --iv-text-faint: #586e75;
+  --iv-border: #073642;
+  --iv-accent: #268bd2;
+  --iv-header-bg: #073642;
+  --iv-header-text: #fdf6e3;
+  --iv-surface: #073642;
+  --iv-node-hover: #073642;
+  --iv-node-border: #586e75;
+  --iv-highlight-bg: #b58900;
+  --iv-highlight-text: #fdf6e3;
+  --iv-search-bg: #073642;
+  --iv-search-border: #586e75;
+  --iv-toolbar-bg: #073642;
+  --iv-toolbar-border: #586e75;
+  --iv-badge-text: #fdf6e3;
+  --iv-scrollbar-track: #073642;
+  --iv-scrollbar-thumb: #586e75;
+  --iv-scrollbar-thumb-hover: #839496;
+  --iv-breadcrumb-color: #586e75;
+}
+
+/* Panel container */
+#oic-ev-ivp {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  z-index: 1000001;
+  background: var(--iv-bg);
+  color: var(--iv-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  font-size: 13px;
+  display: flex;
+  box-shadow: -4px 0 16px rgba(0,0,0,0.35);
+}
+
+#oic-ev-ivp .oic-ev-ivp-handle {
+  width: 5px;
+  cursor: ew-resize;
+  flex-shrink: 0;
+  background: var(--iv-toolbar-border);
+}
+#oic-ev-ivp .oic-ev-ivp-handle:hover {
+  background: var(--iv-accent);
+}
+
+#oic-ev-ivp .oic-ev-ivp-inner {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Header */
+#oic-ev-ivp .oic-ev-ivp-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--iv-header-bg);
+  color: var(--iv-header-text);
+  flex-shrink: 0;
+}
+#oic-ev-ivp .oic-ev-ivp-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+#oic-ev-ivp .oic-ev-ivp-meta {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  opacity: 0.75;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#oic-ev-ivp .oic-ev-ivp-btn {
+  background: rgba(255,255,255,0.12);
+  color: var(--iv-header-text);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+  font-size: 12px;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+#oic-ev-ivp .oic-ev-ivp-btn:hover {
+  background: rgba(255,255,255,0.22);
+}
+#oic-ev-ivp .oic-ev-ivp-close,
+#oic-ev-ivp-fs .oic-ev-ivp-close {
+  background: #dc2626;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  padding: 4px 9px;
+  cursor: pointer;
+}
+#oic-ev-ivp .oic-ev-ivp-close:hover,
+#oic-ev-ivp-fs .oic-ev-ivp-close:hover {
+  background: #b91c1c;
+}
+
+/* Toolbar */
+#oic-ev-ivp .oic-ev-ivp-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--iv-toolbar-bg);
+  border-bottom: 1px solid var(--iv-toolbar-border);
+  flex-shrink: 0;
+}
+#oic-ev-ivp .oic-ev-ivp-toolbar input[type="search"] {
+  flex: 1;
+  min-width: 0;
+  background: var(--iv-search-bg);
+  border: 1px solid var(--iv-search-border);
+  border-radius: 4px;
+  color: var(--iv-text);
+  font-size: 12px;
+  padding: 4px 8px;
+  outline: none;
+}
+#oic-ev-ivp .oic-ev-ivp-toolbar input[type="search"]:focus {
+  border-color: var(--iv-accent);
+}
+#oic-ev-ivp .oic-ev-ivp-toolbar .oic-ev-ivp-btn {
+  background: var(--iv-surface);
+  color: var(--iv-text);
+  border: 1px solid var(--iv-border);
+}
+#oic-ev-ivp .oic-ev-ivp-toolbar .oic-ev-ivp-btn:hover {
+  border-color: var(--iv-accent);
+}
+#oic-ev-ivp .oic-ev-ivp-count {
+  font-size: 11px;
+  color: var(--iv-text-muted);
+  white-space: nowrap;
+}
+
+/* Status line */
+#oic-ev-ivp .oic-ev-ivp-status {
+  font-size: 11px;
+  color: var(--iv-text-muted);
+  padding: 2px 10px;
+  flex-shrink: 0;
+}
+#oic-ev-ivp .oic-ev-ivp-status:empty {
+  display: none;
+}
+#oic-ev-ivp .oic-ev-ivp-status.oic-ev-ivp-status-error {
+  color: #ef4444;
+}
+
+/* Tree container */
+#oic-ev-ivp .oic-ev-ivp-tree {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px 40px 8px;
+}
+#oic-ev-ivp .oic-ev-ivp-tree::-webkit-scrollbar { width: 8px; }
+#oic-ev-ivp .oic-ev-ivp-tree::-webkit-scrollbar-track { background: var(--iv-scrollbar-track); }
+#oic-ev-ivp .oic-ev-ivp-tree::-webkit-scrollbar-thumb { background: var(--iv-scrollbar-thumb); border-radius: 4px; }
+#oic-ev-ivp .oic-ev-ivp-tree::-webkit-scrollbar-thumb:hover { background: var(--iv-scrollbar-thumb-hover); }
+
+/* Tree nodes (classes emitted by shared iv-core renderNode) */
+#oic-ev-ivp .iv-node { margin: 1px 0; }
+
+#oic-ev-ivp .iv-node-header {
+  display: flex;
+  align-items: flex-start;
+  padding: 4px 8px;
+  border-radius: 5px;
+  cursor: default;
+  gap: 6px;
+  line-height: 1.4;
+  user-select: none;
+}
+#oic-ev-ivp .iv-node-header:hover { background: var(--iv-node-hover); }
+#oic-ev-ivp .iv-node-header.iv-header-active {
+  background: var(--iv-node-hover);
+  outline: 1px solid var(--iv-accent);
+}
+
+#oic-ev-ivp .iv-toggle {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  color: var(--iv-text-muted);
+  font-size: 9px;
+  border-radius: 3px;
+  margin-top: 1px;
+}
+#oic-ev-ivp .iv-toggle:hover {
+  background: var(--iv-node-border);
+  color: var(--iv-text);
+}
+#oic-ev-ivp .iv-toggle.iv-leaf {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+#oic-ev-ivp .iv-type-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 3px;
+  color: var(--iv-badge-text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  margin-top: 1px;
+  min-width: 44px;
+  text-align: center;
+}
+
+#oic-ev-ivp .iv-node-name {
+  font-weight: 600;
+  color: var(--iv-text);
+  flex-shrink: 0;
+}
+
+#oic-ev-ivp .iv-node-detail {
+  color: var(--iv-text-muted);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+#oic-ev-ivp .iv-conn-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--iv-node-border);
+  color: var(--iv-text-muted);
+  text-transform: uppercase;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+#oic-ev-ivp .iv-breadcrumb {
+  font-size: 10px;
+  color: var(--iv-breadcrumb-color);
+  padding: 0 8px 2px 8px;
+  margin-left: 30px;
+}
+
+#oic-ev-ivp .iv-node-body {
+  margin: 2px 0 4px 30px;
+  background: var(--iv-surface);
+  border: 1px solid var(--iv-node-border);
+  border-radius: 5px;
+  padding: 6px 10px;
+  font-size: 12px;
+  display: none;
+}
+#oic-ev-ivp .iv-node-body.iv-open { display: block; }
+
+#oic-ev-ivp .iv-children {
+  padding-left: 18px;
+  border-left: 2px solid var(--iv-node-border);
+  margin-left: 8px;
+}
+
+#oic-ev-ivp .iv-detail-row {
+  display: flex;
+  gap: 8px;
+  padding: 2px 0;
+  border-bottom: 1px solid var(--iv-node-border);
+  font-size: 12px;
+}
+#oic-ev-ivp .iv-detail-row:last-child { border-bottom: none; }
+#oic-ev-ivp .iv-detail-label {
+  color: var(--iv-text-muted);
+  min-width: 100px;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+#oic-ev-ivp .iv-detail-value {
+  color: var(--iv-text);
+  word-break: break-word;
+  flex: 1;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 11px;
+}
+
+#oic-ev-ivp .iv-archive-file {
+  background: var(--iv-bg);
+  border: 1px solid var(--iv-border);
+  border-radius: 4px;
+  padding: 6px 10px;
+  margin: 4px 0 8px;
+  font-family: 'SF Mono', 'Consolas', 'Menlo', monospace;
+  font-size: 11px;
+  max-height: 300px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--iv-text);
+}
+
+#oic-ev-ivp .iv-fullscreen-btn {
+  background: none;
+  border: 1px solid var(--iv-border);
+  border-radius: 4px;
+  color: var(--iv-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0 6px;
+  line-height: 20px;
+  margin-left: 6px;
+}
+#oic-ev-ivp .iv-fullscreen-btn:hover {
+  background: var(--iv-node-hover);
+  color: var(--iv-text);
+  border-color: var(--iv-accent);
+}
+
+/* Filter match + navigation flash */
+#oic-ev-ivp .iv-node-header.oic-ev-ivp-match {
+  background: var(--iv-node-hover);
+  outline: 1px dashed var(--iv-accent);
+  outline-offset: -1px;
+}
+
+@keyframes oic-ev-ivp-flash-kf {
+  0%   { background: var(--iv-highlight-bg); }
+  100% { background: transparent; }
+}
+#oic-ev-ivp .iv-node-header.oic-ev-ivp-flash {
+  animation: oic-ev-ivp-flash-kf 2.4s ease-out;
+  outline: 2px solid var(--iv-accent);
+  outline-offset: -2px;
+}
+
+/* Fullscreen file viewer */
+#oic-ev-ivp-fs {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  background: var(--iv-bg);
+  color: var(--iv-text);
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+#oic-ev-ivp-fs .oic-ev-ivp-fs-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: var(--iv-toolbar-bg);
+  border-bottom: 1px solid var(--iv-toolbar-border);
+  flex-shrink: 0;
+}
+#oic-ev-ivp-fs .oic-ev-ivp-fs-title {
+  flex: 1;
+  font-size: 13px;
+  font-family: 'SF Mono', 'Consolas', 'Menlo', monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#oic-ev-ivp-fs .oic-ev-ivp-fs-body {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+  margin: 0;
+  font-family: 'SF Mono', 'Consolas', 'Menlo', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* Per-activity "show definition" button in the activity stream tree */
+.oic-ev-def-btn {
+  flex-shrink: 0;
+}
