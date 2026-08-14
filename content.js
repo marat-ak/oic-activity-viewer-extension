@@ -38,6 +38,19 @@
     return null;
   }
 
+  // The panel lives in iv-panel.js (loaded before this file per manifest).
+  // If it is missing, Chrome is running a stale or partial copy of the
+  // extension — say so instead of failing silently.
+  function ivPanelAvailable() {
+    if (window.OicIvPanel && window.OicIvCore) return true;
+    alert(
+      'Integration panel module is not loaded (iv-panel.js/iv-core.js missing in the running extension).\n\n' +
+      'Fix: open chrome://extensions, verify the extension path points at oic-activity-viewer-extension, ' +
+      'click Reload on the extension card, then refresh this page (Ctrl+F5).'
+    );
+    return false;
+  }
+
   function ivPanelOpts(extra) {
     const opts = {
       code: activityData && activityData.flowCode,
@@ -328,19 +341,18 @@
     header.appendChild(msg);
 
     // Jump to this activity's definition in the integration panel
-    if (window.OicIvPanel) {
-      const defBtn = document.createElement('button');
-      defBtn.className = 'oic-ev-payload-btn oic-ev-def-btn';
-      defBtn.textContent = '⤳';
-      defBtn.title = 'Show definition in integration panel';
-      defBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const ancestors = findItemPath(activityData.items, item, []) || [];
-        const fallbacks = ancestors.map(a => a.milestone).filter(Boolean).reverse();
-        window.OicIvPanel.navigateTo(item, ivPanelOpts({ fallbackMilestones: fallbacks }));
-      });
-      header.appendChild(defBtn);
-    }
+    const defBtn = document.createElement('button');
+    defBtn.className = 'oic-ev-payload-btn oic-ev-def-btn';
+    defBtn.textContent = '⤳';
+    defBtn.title = 'Show definition in integration panel';
+    defBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!ivPanelAvailable()) return;
+      const ancestors = findItemPath(activityData.items, item, []) || [];
+      const fallbacks = ancestors.map(a => a.milestone).filter(Boolean).reverse();
+      window.OicIvPanel.navigateTo(item, ivPanelOpts({ fallbackMilestones: fallbacks }));
+    });
+    header.appendChild(defBtn);
 
     // Payload button — show if payloadExists OR if inline payload content is present
     if (item.payloadExists || item.payload) {
@@ -1181,7 +1193,8 @@
       importActivityData(openImportedData);
     });
     root.querySelector('#oic-ev-open-iv').addEventListener('click', () => {
-      if (window.OicIvPanel) window.OicIvPanel.toggle(ivPanelOpts());
+      if (!ivPanelAvailable()) return;
+      window.OicIvPanel.toggle(ivPanelOpts());
     });
     const closeBtn = root.querySelector('#oic-ev-close');
     // Embedded in the cross-run detail pane: the outer overlay owns closing, so hide this
@@ -2194,4 +2207,10 @@
 
   // Initialize
   watchForActivityStream();
+  try {
+    console.log(
+      '[OIC Activity Viewer] v' + chrome.runtime.getManifest().version +
+      ' — IvCore: ' + !!window.OicIvCore + ', IvPanel: ' + !!window.OicIvPanel
+    );
+  } catch (e) { }
 })();

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "OIC Activity Stream Enhanced Viewer",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "Fast collapsible tree view for OIC Activity Stream, with cross-run search across all executions of an integration.",
   "permissions": [
     "activeTab",
