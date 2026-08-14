@@ -399,6 +399,35 @@
 
   /* ── Navigation: activity-stream item → definition node ────────────── */
 
+  // Activity-stream milestones are the blueprint activity id plus a phase
+  // suffix: "i2Pre-dummy" / "i2Pre" / "i2Post" / "sr0#m" all belong to the
+  // definition node with id "i2" / "sr0". (Confirmed against a real run:
+  // 38/39 milestones resolve this way; "scx" is the synthetic
+  // "Scheduled Run started executing" milestone → schedule RECEIVE node.)
+  function stripMilestone(m) {
+    var s = String(m || '').split('#')[0];
+    return s.replace(/(Pre-dummy|Pre|Post)$/, '');
+  }
+
+  function findByDefinitionId(id) {
+    if (!id) return null;
+    for (var i = 0; i < nodeEls.length; i++) {
+      if (nodeEls[i]._activityData.id === id) return nodeEls[i];
+    }
+    var low = String(id).toLowerCase();
+    for (var j = 0; j < nodeEls.length; j++) {
+      if (String(nodeEls[j]._activityData.id || '').toLowerCase() === low) return nodeEls[j];
+    }
+    return null;
+  }
+
+  function firstOfType(type) {
+    for (var i = 0; i < nodeEls.length; i++) {
+      if (nodeEls[i]._activityData.type === type) return nodeEls[i];
+    }
+    return null;
+  }
+
   function norm(s) {
     return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
   }
@@ -443,6 +472,16 @@
     return bestScore >= 60 ? bestEl : null;
   }
 
+  function findNodeForMilestone(milestone) {
+    // 1. Authoritative: strip phase suffix, match blueprint activity id
+    var el = findByDefinitionId(stripMilestone(milestone));
+    if (el) return el;
+    // 2. Synthetic scheduler milestone → the schedule receive node
+    if (milestone === 'scx') return firstOfType('RECEIVE');
+    // 3. Heuristics on names (older OIC formats / renamed milestones)
+    return findBestNode(milestone);
+  }
+
   function focusNode(nodeEl) {
     var treeC = panel.querySelector('#oic-ev-ivp-tree');
     // Clear filter so the target is not display:none'd
@@ -473,7 +512,7 @@
       var m = milestones[i];
       if (!m || tried.indexOf(m) !== -1) continue;
       tried.push(m);
-      var elMatch = findBestNode(m);
+      var elMatch = findNodeForMilestone(m);
       if (elMatch) {
         focusNode(elMatch);
         if (i > 0) setStatus('No exact node for "' + milestones[0] + '" — showing parent "' + m + '".');
@@ -481,8 +520,8 @@
         return;
       }
     }
-    // Last resort: drop the milestone into the filter box
-    var q = milestones[0] || '';
+    // Last resort: drop the (stripped) milestone into the filter box
+    var q = stripMilestone(milestones[0]) || milestones[0] || '';
     if (q) {
       var input = panel.querySelector('#oic-ev-ivp-search');
       if (input) { input.value = q; applyFilter(); }
